@@ -47,7 +47,7 @@ HttpResponse::HttpResponse() {
     path_ = srcDir_ = "";
     isKeepAlive_ = false;
     mmFile_ = nullptr; 
-    mmFileStat_ = { 0 };
+    memset(&mmFileStat_, 0, sizeof(mmFileStat_));
 };
 
 HttpResponse::~HttpResponse() {
@@ -62,7 +62,7 @@ void HttpResponse::Init(const string& srcDir, string& path, bool isKeepAlive, in
     path_ = path;
     srcDir_ = srcDir;
     mmFile_ = nullptr; 
-    mmFileStat_ = { 0 };
+    memset(&mmFileStat_, 0, sizeof(mmFileStat_));
 }
 
 void HttpResponse::MakeResponse(Buffer& buff) {

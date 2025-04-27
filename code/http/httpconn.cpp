@@ -12,7 +12,7 @@ bool HttpConn::isET;
 
 HttpConn::HttpConn() { 
     fd_ = -1;
-    addr_ = { 0 };
+    memset(&addr_, 0, sizeof(addr_));
     isClose_ = true;
 };
 

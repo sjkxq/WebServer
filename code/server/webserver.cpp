@@ -219,7 +219,8 @@ bool WebServer::InitSocket_() {
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
     addr.sin_port = htons(port_);
-    struct linger optLinger = { 0 };
+    struct linger optLinger = {};
+    memset(&optLinger, 0, sizeof(optLinger));
     if(openLinger_) {
         /* 优雅关闭: 直到所剩数据发送完毕或超时 */
         optLinger.l_onoff = 1;

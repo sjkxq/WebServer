@@ -3,12 +3,13 @@
  * @Date         : 2020-06-17
  * @copyleft Apache 2.0
  */ 
+#include <climits>
 #include "heaptimer.h"
 
 void HeapTimer::siftup_(size_t i) {
-    assert(i >= 0 && i < heap_.size());
+    assert(i < heap_.size());
     size_t j = (i - 1) / 2;
-    while(j >= 0) {
+    while(true) {
         if(heap_[j] < heap_[i]) { break; }
         SwapNode_(i, j);
         i = j;
@@ -17,16 +18,16 @@ void HeapTimer::siftup_(size_t i) {
 }
 
 void HeapTimer::SwapNode_(size_t i, size_t j) {
-    assert(i >= 0 && i < heap_.size());
-    assert(j >= 0 && j < heap_.size());
+    assert(i < heap_.size());
+    assert(j < heap_.size());
     std::swap(heap_[i], heap_[j]);
     ref_[heap_[i].id] = i;
     ref_[heap_[j].id] = j;
 } 
 
 bool HeapTimer::siftdown_(size_t index, size_t n) {
-    assert(index >= 0 && index < heap_.size());
-    assert(n >= 0 && n <= heap_.size());
+    assert(index < heap_.size());
+    assert(n <= heap_.size());
     size_t i = index;
     size_t j = i * 2 + 1;
     while(j < n) {
@@ -73,7 +74,7 @@ void HeapTimer::doWork(int id) {
 
 void HeapTimer::del_(size_t index) {
     /* 删除指定位置的结点 */
-    assert(!heap_.empty() && index >= 0 && index < heap_.size());
+    assert(!heap_.empty() && index < heap_.size());
     /* 将要删除的结点换到队尾，然后调整堆 */
     size_t i = index;
     size_t n = heap_.size() - 1;
@@ -126,7 +127,7 @@ int HeapTimer::GetNextTick() {
     size_t res = -1;
     if(!heap_.empty()) {
         res = std::chrono::duration_cast<MS>(heap_.front().expires - Clock::now()).count();
-        if(res < 0) { res = 0; }
+        if(res > INT_MAX) { res = 0; }
     }
     return res;
 }

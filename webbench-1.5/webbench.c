@@ -74,7 +74,7 @@ static void benchcore(const char* host,const int port, const char *request);
 static int bench(void);
 static void build_request(const char *url);
 
-static void alarm_handler(int signal)
+static void alarm_handler(int signal __attribute__((unused)))
 {
    timerexpired=1;
 }	

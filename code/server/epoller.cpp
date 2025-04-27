@@ -4,6 +4,7 @@
  * @copyleft Apache 2.0
  */
 
+#include <cstring>
 #include "epoller.h"
 
 Epoller::Epoller(int maxEvent):epollFd_(epoll_create(512)), events_(maxEvent){
@@ -16,7 +17,8 @@ Epoller::~Epoller() {
 
 bool Epoller::AddFd(int fd, uint32_t events) {
     if(fd < 0) return false;
-    epoll_event ev = {0};
+    epoll_event ev = {};
+    memset(&ev, 0, sizeof(ev));
     ev.data.fd = fd;
     ev.events = events;
     return 0 == epoll_ctl(epollFd_, EPOLL_CTL_ADD, fd, &ev);
@@ -24,7 +26,8 @@ bool Epoller::AddFd(int fd, uint32_t events) {
 
 bool Epoller::ModFd(int fd, uint32_t events) {
     if(fd < 0) return false;
-    epoll_event ev = {0};
+    epoll_event ev = {};
+    memset(&ev, 0, sizeof(ev));
     ev.data.fd = fd;
     ev.events = events;
     return 0 == epoll_ctl(epollFd_, EPOLL_CTL_MOD, fd, &ev);
@@ -32,7 +35,8 @@ bool Epoller::ModFd(int fd, uint32_t events) {
 
 bool Epoller::DelFd(int fd) {
     if(fd < 0) return false;
-    epoll_event ev = {0};
+    epoll_event ev = {};
+    memset(&ev, 0, sizeof(ev));
     return 0 == epoll_ctl(epollFd_, EPOLL_CTL_DEL, fd, &ev);
 }
 
@@ -41,11 +45,11 @@ int Epoller::Wait(int timeoutMs) {
 }
 
 int Epoller::GetEventFd(size_t i) const {
-    assert(i < events_.size() && i >= 0);
+    assert(i < events_.size());
     return events_[i].data.fd;
 }
 
 uint32_t Epoller::GetEvents(size_t i) const {
-    assert(i < events_.size() && i >= 0);
+    assert(i < events_.size());
     return events_[i].events;
 }
