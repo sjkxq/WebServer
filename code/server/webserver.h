@@ -30,6 +30,12 @@ public:
         int sqlPort, const char* sqlUser, const  char* sqlPwd, 
         const char* dbName, int connPoolNum, int threadNum,
         bool openLog, int logLevel, int logQueSize);
+        
+    /**
+     * @brief 通过配置文件构造WebServer
+     * @param configFile 配置文件路径
+     */
+    explicit WebServer(const char* configFile);
 
     ~WebServer();
     void Start();
