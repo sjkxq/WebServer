@@ -5,7 +5,7 @@
  */ 
 #include "log.h"
 
-using namespace std;
+
 
 Log::Log() {
     lineCount_ = 0;
@@ -25,19 +25,19 @@ Log::~Log() {
         writeThread_->join();
     }
     if(fp_) {
-        lock_guard<mutex> locker(mtx_);
+        std::lock_guard<std::mutex> locker(mtx_);
         flush();
         fclose(fp_);
     }
 }
 
 int Log::GetLevel() {
-    lock_guard<mutex> locker(mtx_);
+    std::lock_guard<std::mutex> locker(mtx_);
     return level_;
 }
 
 void Log::SetLevel(int level) {
-    lock_guard<mutex> locker(mtx_);
+    std::lock_guard<std::mutex> locker(mtx_);
     level_ = level;
 }
 
@@ -48,10 +48,10 @@ void Log::init(int level = 1, const char* path, const char* suffix,
     if(maxQueueSize > 0) {
         isAsync_ = true;
         if(!deque_) {
-            unique_ptr<BlockDeque<std::string>> newDeque(new BlockDeque<std::string>);
-            deque_ = move(newDeque);
+            std::unique_ptr<BlockDeque<std::string>> newDeque(new BlockDeque<std::string>);
+            deque_ = std::move(newDeque);
             
-            std::unique_ptr<std::thread> NewThread(new thread(FlushLogThread));
+            std::unique_ptr<std::thread> NewThread(new std::thread(FlushLogThread));
             writeThread_ = move(NewThread);
         }
     } else {
@@ -71,7 +71,7 @@ void Log::init(int level = 1, const char* path, const char* suffix,
     toDay_ = t.tm_mday;
 
     {
-        lock_guard<mutex> locker(mtx_);
+        std::lock_guard<std::mutex> locker(mtx_);
         buff_.RetrieveAll();
         if(fp_) { 
             flush();
@@ -98,7 +98,7 @@ void Log::write(int level, const char *format, ...) {
     /* 日志日期 日志行数 */
     if (toDay_ != t.tm_mday || (lineCount_ && (lineCount_  %  MAX_LINES == 0)))
     {
-        unique_lock<mutex> locker(mtx_);
+        std::unique_lock<std::mutex> locker(mtx_);
         locker.unlock();
         
         char newFile[LOG_NAME_LEN];
@@ -123,7 +123,7 @@ void Log::write(int level, const char *format, ...) {
     }
 
     {
-        unique_lock<mutex> locker(mtx_);
+        std::unique_lock<std::mutex> locker(mtx_);
         lineCount_++;
         int n = snprintf(buff_.BeginWrite(), 128, "%d-%02d-%02d %02d:%02d:%02d.%06ld ",
                     t.tm_year + 1900, t.tm_mon + 1, t.tm_mday,
@@ -176,9 +176,9 @@ void Log::flush() {
 }
 
 void Log::AsyncWrite_() {
-    string str = "";
+    std::string str = "";
     while(deque_->pop(str)) {
-        lock_guard<mutex> locker(mtx_);
+        std::lock_guard<std::mutex> locker(mtx_);
         fputs(str.c_str(), fp_);
     }
 }

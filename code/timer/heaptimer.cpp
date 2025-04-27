@@ -17,9 +17,13 @@ void HeapTimer::siftup_(size_t i) {
     }
 }
 
+/**
+ * 交换堆中两个节点的位置
+ * @param i 第一个节点的索引
+ * @param j 第二个节点的索引
+ */
 void HeapTimer::SwapNode_(size_t i, size_t j) {
-    assert(i < heap_.size());
-    assert(j < heap_.size());
+    if(i >= heap_.size() || j >= heap_.size()) return;
     std::swap(heap_[i], heap_[j]);
     ref_[heap_[i].id] = i;
     ref_[heap_[j].id] = j;

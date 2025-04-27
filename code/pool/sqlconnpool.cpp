@@ -5,7 +5,7 @@
  */ 
 
 #include "sqlconnpool.h"
-using namespace std;
+
 
 SqlConnPool::SqlConnPool() {
     useCount_ = 0;
@@ -48,7 +48,7 @@ MYSQL* SqlConnPool::GetConn() {
     }
     sem_wait(&semId_);
     {
-        lock_guard<mutex> locker(mtx_);
+        std::lock_guard<std::mutex> locker(mtx_);
         sql = connQue_.front();
         connQue_.pop();
     }
@@ -57,13 +57,13 @@ MYSQL* SqlConnPool::GetConn() {
 
 void SqlConnPool::FreeConn(MYSQL* sql) {
     assert(sql);
-    lock_guard<mutex> locker(mtx_);
+    std::lock_guard<std::mutex> locker(mtx_);
     connQue_.push(sql);
     sem_post(&semId_);
 }
 
 void SqlConnPool::ClosePool() {
-    lock_guard<mutex> locker(mtx_);
+    std::lock_guard<std::mutex> locker(mtx_);
     while(!connQue_.empty()) {
         auto item = connQue_.front();
         connQue_.pop();
@@ -73,7 +73,7 @@ void SqlConnPool::ClosePool() {
 }
 
 int SqlConnPool::GetFreeConnCount() {
-    lock_guard<mutex> locker(mtx_);
+    std::lock_guard<std::mutex> locker(mtx_);
     return connQue_.size();
 }
 

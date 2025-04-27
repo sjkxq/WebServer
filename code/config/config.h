@@ -1,9 +1,3 @@
-/*
- * @Author       : mark
- * @Date         : 2020-06-28
- * @copyleft Apache 2.0
- */
-
 #ifndef CONFIG_H
 #define CONFIG_H
 

@@ -1,9 +1,3 @@
-/*
- * @Author       : mark
- * @Date         : 2023-11-15
- * @copyleft Apache 2.0
- */
-
 #include "config.h"
 #include <algorithm>
 #include <fstream>
