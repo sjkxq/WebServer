@@ -28,23 +28,24 @@ WebServer::WebServer(
     (void)logQueSize;
 }
 
-WebServer::WebServer(const char* /*configFile*/):
+WebServer::WebServer(const char* configFile):
             isClose_(false), timer_(new HeapTimer()), epoller_(new Epoller()) {
     
     // 从配置文件读取参数
-    port_ = 9006;
-    int trigMode = 3;
-    timeoutMS_ = 60000;
-    openLinger_ = false;
-    int sqlPort = 3306;
-    std::string sqlUser = "root";
-    std::string sqlPwd = "123456";
-    std::string dbName = "webserver";
-    int connPoolNum = 12;
-    int threadNum = 6;
-    bool openLog = true;
-    int logLevel = 1;
-    int logQueSize = 1024;
+    Config config(configFile);
+    port_ = config.GetInt("port", 9006);
+    int trigMode = config.GetInt("trigMode", 3);
+    timeoutMS_ = config.GetInt("timeoutMS", 60000);
+    openLinger_ = config.GetBool("openLinger", false);
+    int sqlPort = config.GetInt("sqlPort", 3306);
+    std::string sqlUser = config.GetString("sqlUser", "root");
+    std::string sqlPwd = config.GetString("sqlPwd", "123456");
+    std::string dbName = config.GetString("dbName", "webserver");
+    int connPoolNum = config.GetInt("connPoolNum", 12);
+    int threadNum = config.GetInt("threadNum", 6);
+    bool openLog = config.GetBool("openLog", true);
+    int logLevel = config.GetInt("logLevel", 1);
+    int logQueSize = config.GetInt("logQueSize", 1024);
 
     srcDir_ = getcwd(nullptr, 256);
     assert(srcDir_);
