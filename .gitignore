@@ -12,3 +12,6 @@
 *.log
 *.exe
 /.vscode
+.trae/
+
+bin/*
