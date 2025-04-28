@@ -1,15 +1,35 @@
 #include "config.h"
+#include <iostream>
 #include <algorithm>
 #include <fstream>
 #include <sstream>
-//#include <iostream>
 #include <unordered_map>
+#include <sys/inotify.h>
+#include <unistd.h>
+#include <thread>
+#include <mutex>
 
-Config::Config(const char* configFile) {
-    std::ifstream ifs(configFile);
+Config::Config(const char* configFile) : configFile_(configFile), stopWatch_(false) {
+    LoadConfig();
+    watchThread_ = std::thread(&Config::WatchConfigFile, this);
+}
+
+Config::~Config() {
+    stopWatch_ = true;
+    if(watchThread_.joinable()) {
+        watchThread_.join();
+    }
+}
+
+void Config::LoadConfig() {
+    std::lock_guard<std::mutex> lock(configMutex_);
+    
+    std::ifstream ifs(configFile_);
     if(!ifs.is_open()) {
         throw std::runtime_error("Failed to open config file");
     }
+    
+    std::cout << "[Config] 重新加载配置文件: " << configFile_ << std::endl;
     
     std::string line;
     while(std::getline(ifs, line)) {
@@ -21,8 +41,56 @@ Config::Config(const char* configFile) {
         std::string key = line.substr(0, pos);
         std::string value = line.substr(pos + 1);
         configMap_[key] = value;
+        
+        // 输出到控制台和日志
+        std::cout << "[Config] " << key << " = " << value << std::endl;
     }
     ifs.close();
+}
+
+/**
+ * @brief 监控配置文件变化的线程函数
+ */
+void Config::WatchConfigFile() {
+    int fd = inotify_init();
+    if(fd < 0) {
+        return;
+    }
+    
+    int wd = inotify_add_watch(fd, configFile_.c_str(), IN_MODIFY);
+    if(wd < 0) {
+        close(fd);
+        return;
+    }
+    
+    const int bufLen = 1024;
+    char buffer[bufLen];
+    
+    while(!stopWatch_) {
+        fd_set fds;
+        FD_ZERO(&fds);
+        FD_SET(fd, &fds);
+        
+        struct timeval timeout = {1, 0}; // 1秒超时
+        
+        int ret = select(fd + 1, &fds, NULL, NULL, &timeout);
+        if(ret < 0) {
+            break;
+        } else if(ret == 0) {
+            continue;
+        }
+        
+        ssize_t len = read(fd, buffer, bufLen);
+        if(len <= 0) {
+            continue;
+        }
+        
+        // 配置文件被修改，重新加载
+        LoadConfig();
+    }
+    
+    inotify_rm_watch(fd, wd);
+    close(fd);
 }
 
 int Config::GetInt(const std::string& key, int defaultValue) {

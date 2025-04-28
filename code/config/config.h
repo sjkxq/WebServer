@@ -3,6 +3,8 @@
 
 #include <string>
 #include <unordered_map>
+#include <thread>
+#include <mutex>
 
 /**
  * @brief 配置类，用于读取和解析配置文件
@@ -14,6 +16,8 @@ public:
      * @param configFile 配置文件路径
      */
     explicit Config(const char* configFile);
+    
+    ~Config();
     
     /**
      * @brief 获取整型配置值
@@ -40,6 +44,13 @@ public:
     bool GetBool(const std::string& key, bool defaultValue = false);
 
 private:
+    void LoadConfig();
+    void WatchConfigFile();
+    
+    std::string configFile_;
+    bool stopWatch_;
+    std::thread watchThread_;
+    std::mutex configMutex_;
     std::unordered_map<std::string, std::string> configMap_;
 };
 
