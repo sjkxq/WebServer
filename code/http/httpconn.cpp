@@ -10,6 +10,10 @@ const char* HttpConn::srcDir;
 std::atomic<int> HttpConn::userCount;
 bool HttpConn::isET;
 
+/**
+ * @brief HttpConn构造函数
+ * @details 初始化Http连接对象，设置文件描述符为-1，清空地址结构，标记连接为关闭状态
+ */
 HttpConn::HttpConn() { 
     fd_ = -1;
     memset(&addr_, 0, sizeof(addr_));
@@ -20,6 +24,12 @@ HttpConn::~HttpConn() {
     Close(); 
 };
 
+/**
+ * @brief 初始化Http连接
+ * @param fd 客户端socket文件描述符
+ * @param addr 客户端socket地址结构
+ * @details 初始化连接参数，重置读写缓冲区，增加用户计数，记录日志
+ */
 void HttpConn::init(int fd, const sockaddr_in& addr) {
     assert(fd > 0);
     userCount++;
@@ -41,22 +51,44 @@ void HttpConn::Close() {
     }
 }
 
+/**
+ * @brief 获取客户端socket文件描述符
+ * @return int 客户端socket文件描述符
+ */
 int HttpConn::GetFd() const {
     return fd_;
 };
 
+/**
+ * @brief 获取客户端socket地址结构
+ * @return sockaddr_in 客户端socket地址结构
+ */
 struct sockaddr_in HttpConn::GetAddr() const {
     return addr_;
 }
 
+/**
+ * @brief 获取客户端IP地址
+ * @return const char* 客户端IP地址字符串
+ */
 const char* HttpConn::GetIP() const {
     return inet_ntoa(addr_.sin_addr);
 }
 
+/**
+ * @brief 获取客户端端口号
+ * @return int 客户端端口号
+ */
 int HttpConn::GetPort() const {
     return addr_.sin_port;
 }
 
+/**
+ * @brief 从客户端socket读取数据
+ * @param saveErrno 保存错误码的指针
+ * @return ssize_t 读取的字节数，-1表示出错
+ * @details 根据ET模式决定是否循环读取
+ */
 ssize_t HttpConn::read(int* saveErrno) {
     ssize_t len = -1;
     do {
@@ -94,6 +126,11 @@ ssize_t HttpConn::write(int* saveErrno) {
     return len;
 }
 
+/**
+ * @brief 处理HTTP请求
+ * @return bool 处理是否成功
+ * @details 解析请求，生成响应，设置iovec结构用于发送响应
+ */
 bool HttpConn::process() {
     request_.Init();
     if(readBuff_.ReadableBytes() <= 0) {

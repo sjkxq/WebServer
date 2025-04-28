@@ -73,6 +73,10 @@ WebServer::WebServer(const char* configFile):
     }
 }
 
+/**
+ * @brief WebServer析构函数
+ * @details 关闭监听socket，释放资源，关闭数据库连接池
+ */
 WebServer::~WebServer() {
     close(listenFd_);
     isClose_ = true;
