@@ -19,3 +19,7 @@ cd ../bin
 sleep 3
 cd ../webbench-1.5
 ./webbench -c 10 -t 5 http://localhost:$port/
+# ./webbench-1.5/webbench -c 100 -t 10 http://localhost:$port/
+# ./webbench-1.5/webbench -c 1000 -t 10 http://localhost:$port/
+# ./webbench-1.5/webbench -c 5000 -t 10 http://localhost:$port/
+# ./webbench-1.5/webbench -c 10000 -t 10 http://localhost:$port/
