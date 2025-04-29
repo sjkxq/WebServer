@@ -5,6 +5,9 @@
 #include <unordered_map>
 #include <thread>
 #include <mutex>
+#include <shared_mutex>
+#include <functional>
+#include <vector>
 
 /**
  * @brief 配置类，用于读取和解析配置文件
@@ -42,16 +45,25 @@ public:
      * @return 配置值或默认值
      */
     bool GetBool(const std::string& key, bool defaultValue = false);
+    
+    /**
+     * @brief 添加配置变更回调函数
+     * @param key 配置键
+     * @param callback 回调函数
+     */
+    void AddConfigChangeCallback(const std::string& key, std::function<void(const std::string&)> callback);
 
 private:
     void LoadConfig();
     void WatchConfigFile();
+    void NotifyConfigChange(const std::string& key);
     
     std::string configFile_;
     bool stopWatch_;
     std::thread watchThread_;
-    std::mutex configMutex_;
+    mutable std::shared_mutex configMutex_;
     std::unordered_map<std::string, std::string> configMap_;
+    std::unordered_map<std::string, std::vector<std::function<void(const std::string&)>>> callbacks_;
 };
 
 #endif // CONFIG_H

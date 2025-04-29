@@ -100,15 +100,26 @@ ssize_t HttpConn::read(int* saveErrno) {
     return len;
 }
 
+/**
+ * @brief 向客户端写入数据
+ * @param saveErrno 保存错误码的指针
+ * @return ssize_t 写入的字节数，-1表示出错
+ * @details 处理写入错误，记录详细错误日志，确保资源正确释放
+ */
 ssize_t HttpConn::write(int* saveErrno) {
     ssize_t len = -1;
     do {
         len = writev(fd_, iov_, iovCnt_);
         if(len <= 0) {
             *saveErrno = errno;
+            LOG_ERROR("Write error: %s, fd: %d", strerror(errno), fd_);
+            Close();
             break;
         }
-        if(iov_[0].iov_len + iov_[1].iov_len  == 0) { break; } /* 传输结束 */
+        if(iov_[0].iov_len + iov_[1].iov_len  == 0) { 
+            LOG_DEBUG("Write completed, fd: %d", fd_);
+            break; 
+        }
         else if(static_cast<size_t>(len) > iov_[0].iov_len) {
             iov_[1].iov_base = (uint8_t*) iov_[1].iov_base + (len - iov_[0].iov_len);
             iov_[1].iov_len -= (len - iov_[0].iov_len);

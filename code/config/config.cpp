@@ -21,9 +21,33 @@ Config::~Config() {
     }
 }
 
+/**
+ * @brief 添加配置变更回调函数
+ * @param key 配置键
+ * @param callback 回调函数
+ */
+void Config::AddConfigChangeCallback(const std::string& key, std::function<void(const std::string&)> callback) {
+    std::unique_lock<std::shared_mutex> lock(configMutex_);
+    callbacks_[key].push_back(callback);
+}
+
+/**
+ * @brief 通知配置变更
+ * @param key 变更的配置键
+ */
+void Config::NotifyConfigChange(const std::string& key) {
+    auto it = callbacks_.find(key);
+    if(it != callbacks_.end()) {
+        for(const auto& callback : it->second) {
+            callback(key);
+        }
+    }
+}
+
 void Config::LoadConfig() {
-    std::lock_guard<std::mutex> lock(configMutex_);
+    std::unique_lock<std::shared_mutex> lock(configMutex_);
     
+    std::unordered_map<std::string, std::string> newConfigMap;
     std::ifstream ifs(configFile_);
     if(!ifs.is_open()) {
         throw std::runtime_error("Failed to open config file");
@@ -40,12 +64,26 @@ void Config::LoadConfig() {
         
         std::string key = line.substr(0, pos);
         std::string value = line.substr(pos + 1);
-        configMap_[key] = value;
+        newConfigMap[key] = value;
         
         // 输出到控制台和日志
         std::cout << "[Config] " << key << " = " << value << std::endl;
     }
     ifs.close();
+    
+    // 原子性更新配置
+    std::vector<std::string> changedKeys;
+    for(const auto& item : newConfigMap) {
+        if(configMap_[item.first] != item.second) {
+            changedKeys.push_back(item.first);
+        }
+    }
+    configMap_ = std::move(newConfigMap);
+    
+    // 通知配置变更
+    for(const auto& key : changedKeys) {
+        NotifyConfigChange(key);
+    }
 }
 
 /**
@@ -94,6 +132,7 @@ void Config::WatchConfigFile() {
 }
 
 int Config::GetInt(const std::string& key, int defaultValue) {
+    std::shared_lock<std::shared_mutex> lock(configMutex_);
     auto it = configMap_.find(key);
     if(it == configMap_.end()) return defaultValue;
     
@@ -121,12 +160,14 @@ int Config::GetInt(const std::string& key, int defaultValue) {
 }
 
 std::string Config::GetString(const std::string& key, const std::string& defaultValue) {
+    std::shared_lock<std::shared_mutex> lock(configMutex_);
     auto it = configMap_.find(key);
     if(it == configMap_.end()) return defaultValue;
     return it->second;
 }
 
 bool Config::GetBool(const std::string& key, bool defaultValue) {
+    std::shared_lock<std::shared_mutex> lock(configMutex_);
     auto it = configMap_.find(key);
     if(it == configMap_.end()) return defaultValue;
     

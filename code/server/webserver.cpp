@@ -114,7 +114,11 @@ void WebServer::Start() {
         if(timeoutMS_ > 0) {
             timeMS = timer_->GetNextTick();
         }
+        auto eventStart = std::chrono::steady_clock::now();
         int eventCnt = epoller_->Wait(timeMS);
+        auto eventEnd = std::chrono::steady_clock::now();
+        auto eventDuration = std::chrono::duration_cast<std::chrono::milliseconds>(eventEnd - eventStart);
+        LOG_DEBUG("Event loop processed in %lld ms", eventDuration.count());
         for(int i = 0; i < eventCnt; i++) {
             int fd = epoller_->GetEventFd(i);
             uint32_t events = epoller_->GetEvents(i);
@@ -181,8 +185,12 @@ void WebServer::DealListen_() {
  */
 void WebServer::DealRead_(HttpConn* client) {
     assert(client);
+    auto start = std::chrono::steady_clock::now();
     ExtentTime_(client);
     threadpool_->AddTask(std::bind(&WebServer::OnRead_, this, client));
+    auto end = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    LOG_DEBUG("Read request processed in %lld ms", duration.count());
 }
 
 /**
@@ -191,8 +199,12 @@ void WebServer::DealRead_(HttpConn* client) {
  */
 void WebServer::DealWrite_(HttpConn* client) {
     assert(client);
+    auto start = std::chrono::steady_clock::now();
     ExtentTime_(client);
     threadpool_->AddTask(std::bind(&WebServer::OnWrite_, this, client));
+    auto end = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    LOG_DEBUG("Write request processed in %lld ms", duration.count());
 }
 
 void WebServer::ExtentTime_(HttpConn* client) {
@@ -212,8 +224,20 @@ void WebServer::OnRead_(HttpConn* client) {
     OnProcess(client);
 }
 
+/**
+ * @brief 处理HTTP请求并统计耗时
+ * @param client HTTP连接对象指针
+ * @details 记录请求处理开始和结束时间，计算耗时并记录日志
+ */
 void WebServer::OnProcess(HttpConn* client) {
-    if(client->process()) {
+    auto start = std::chrono::steady_clock::now();
+    bool processResult = client->process();
+    auto end = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    
+    LOG_DEBUG("Request processed in %lld ms", duration.count());
+    
+    if(processResult) {
         epoller_->ModFd(client->GetFd(), connEvent_ | EPOLLOUT);
     } else {
         epoller_->ModFd(client->GetFd(), connEvent_ | EPOLLIN);
