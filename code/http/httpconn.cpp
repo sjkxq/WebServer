@@ -108,11 +108,26 @@ ssize_t HttpConn::read(int* saveErrno) {
  */
 ssize_t HttpConn::write(int* saveErrno) {
     ssize_t len = -1;
+    int retryCount = 0;
+    const int maxRetry = 3;
     do {
         len = writev(fd_, iov_, iovCnt_);
         if(len <= 0) {
             *saveErrno = errno;
-            LOG_ERROR("Write error: %s, fd: %d", strerror(errno), fd_);
+            
+            // 错误分类
+            if(errno == EAGAIN || errno == EWOULDBLOCK) {
+                LOG_WARN("Write timeout, fd: %d, retry: %d/%d", fd_, retryCount+1, maxRetry);
+                if(++retryCount < maxRetry) {
+                    usleep(1000); // 等待1ms后重试
+                    continue;
+                }
+            } else if(errno == EPIPE || errno == ECONNRESET) {
+                LOG_ERROR("Connection reset by peer, fd: %d", fd_);
+            } else {
+                LOG_ERROR("Write error: %s, fd: %d", strerror(errno), fd_);
+            }
+            
             Close();
             break;
         }

@@ -22,27 +22,31 @@ public:
     
     ~Config();
     
+
     /**
-     * @brief 获取整型配置值
+     * @brief 原子获取整型配置值
      * @param key 配置键
      * @param defaultValue 默认值
      * @return 配置值或默认值
+     * @note 线程安全
      */
     int GetInt(const std::string& key, int defaultValue = 0);
     
     /**
-     * @brief 获取字符串配置值
+     * @brief 原子获取字符串配置值
      * @param key 配置键
      * @param defaultValue 默认值
      * @return 配置值或默认值
+     * @note 线程安全
      */
     std::string GetString(const std::string& key, const std::string& defaultValue = "");
     
     /**
-     * @brief 获取布尔型配置值
+     * @brief 原子获取布尔型配置值
      * @param key 配置键
      * @param defaultValue 默认值
      * @return 配置值或默认值
+     * @note 线程安全
      */
     bool GetBool(const std::string& key, bool defaultValue = false);
     

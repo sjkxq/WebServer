@@ -197,6 +197,10 @@ void WebServer::DealRead_(HttpConn* client) {
  * @brief 处理客户端写事件
  * @param client HTTP连接对象指针
  */
+/**
+ * @brief 处理客户端写事件
+ * @param client HTTP连接对象指针
+ */
 void WebServer::DealWrite_(HttpConn* client) {
     assert(client);
     auto start = std::chrono::steady_clock::now();
