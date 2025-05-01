@@ -6,7 +6,19 @@ PREFIX?=	/usr/local
 VERSION=1.5
 TMPDIR=/tmp/webbench-$(VERSION)
 
-all:   webbench tags
+# 检测操作系统类型
+UNAME := $(shell uname)
+
+# 根据操作系统设置不同的目标文件名和清理命令
+ifeq ($(UNAME), Linux)
+    TARGET = webbench
+    RM = rm -f
+else
+    TARGET = webbench.exe
+    RM = del /Q
+endif
+
+all:   $(TARGET) tags
 
 tags:  *.c
 	-ctags *.c
@@ -18,11 +30,11 @@ install: webbench
 	install -m 644 debian/copyright $(DESTDIR)$(PREFIX)/share/doc/webbench
 	install -m 644 debian/changelog $(DESTDIR)$(PREFIX)/share/doc/webbench
 
-webbench: webbench.o Makefile
-	$(CC) $(CFLAGS) $(LDFLAGS) -o webbench webbench.o $(LIBS) 
+$(TARGET): webbench.o Makefile
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $(TARGET) webbench.o $(LIBS) 
 
 clean:
-	-rm -f *.o webbench *~ core *.core tags
+	-$(RM) *.o $(TARGET) *~ core *.core tags
 	
 tar:   clean
 	-debian/rules clean
