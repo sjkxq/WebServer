@@ -5,8 +5,7 @@
  */
 
 #include "webserver.h"
-
-
+#include <iostream>
 
 #include "../config/config.h"
 
@@ -110,6 +109,8 @@ void WebServer::InitEventMode_(int trigMode) {
 void WebServer::Start() {
     int timeMS = -1;
     if(!isClose_) { LOG_INFO("========== Server start =========="); }
+    std::cout << "服务器启动成功，监听端口" << port_ << std::endl;
+    LOG_INFO("服务器启动成功，监听端口%d", port_);
     while(!isClose_) {
         if(timeoutMS_ > 0) {
             timeMS = timer_->GetNextTick();
@@ -274,8 +275,34 @@ void WebServer::OnWrite_(HttpConn* client) {
 bool WebServer::InitSocket_() {
     int ret;
     struct sockaddr_in addr;
+    
+    /**
+     * @brief 验证端口号有效性
+     * @details 检查端口号是否在1024-65535范围内
+     */
     if(port_ > 65535 || port_ < 1024) {
-        LOG_ERROR("Port:%d error!",  port_);
+        LOG_ERROR("Port:%d error! Port must be between 1024 and 65535", port_);
+        return false;
+    }
+    
+    /**
+     * @brief 检查端口是否被占用
+     * @details 尝试绑定临时socket来检测端口是否可用
+     */
+    int testFd = socket(AF_INET, SOCK_STREAM, 0);
+    if(testFd < 0) {
+        LOG_ERROR("Create test socket error!");
+        return false;
+    }
+    
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr.sin_port = htons(port_);
+    
+    ret = bind(testFd, (struct sockaddr *)&addr, sizeof(addr));
+    close(testFd);
+    if(ret < 0) {
+        LOG_ERROR("Port:%d is already in use!", port_);
         return false;
     }
     addr.sin_family = AF_INET;

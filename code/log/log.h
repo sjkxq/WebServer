@@ -26,7 +26,7 @@ public:
     static Log* Instance();
     static void FlushLogThread();
 
-    void write(int level, const char *format,...);
+    bool write(int level, const char *format,...);
     void flush();
 
     int GetLevel();

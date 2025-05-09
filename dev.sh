@@ -4,8 +4,8 @@ clear
 # 调用构建脚本
 ./scripts/build.sh
 
-# 调用测试脚本
-./scripts/test.sh
+echo "当前工作目录: $(pwd)"
 
-# 调用压力测试脚本
-./scripts/benchmark.sh
+# 调用测试脚本
+
+./scripts/test.sh

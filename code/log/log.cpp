@@ -7,6 +7,9 @@
 
 
 
+/**
+ * @brief 构造函数，初始化日志系统
+ */
 Log::Log() {
     lineCount_ = 0;
     isAsync_ = false;
@@ -16,6 +19,10 @@ Log::Log() {
     fp_ = nullptr;
 }
 
+/**
+ * @brief 析构函数，清理日志系统资源
+ * @note 会等待异步线程完成所有日志写入
+ */
 Log::~Log() {
     if(writeThread_ && writeThread_->joinable()) {
         while(!deque_->empty()) {
@@ -87,7 +94,16 @@ void Log::init(int level = 1, const char* path, const char* suffix,
     }
 }
 
-void Log::write(int level, const char *format, ...) {
+/**
+ * @brief 写入日志
+ * @param level 日志级别
+ * @param format 日志格式字符串
+ * @return bool 写入成功返回true，日志级别不足返回false
+ */
+bool Log::write(int level, const char *format, ...) {
+    if(level < level_) {
+        return false;
+    }
     struct timeval now = {0, 0};
     gettimeofday(&now, nullptr);
     time_t tSec = now.tv_sec;
@@ -139,15 +155,43 @@ void Log::write(int level, const char *format, ...) {
         buff_.HasWritten(m);
         buff_.Append("\n\0", 2);
 
-        if(isAsync_ && deque_ && !deque_->full()) {
-            deque_->push_back(buff_.RetrieveAllToStr());
+        if(isAsync_ && deque_) {
+            if(!deque_->full()) {
+                deque_->push_back(buff_.RetrieveAllToStr());
+            } else {
+                // 队列满时使用批量写入减少锁竞争
+                std::vector<std::string> batch;
+                batch.push_back(buff_.RetrieveAllToStr());
+                
+                // 尝试批量获取更多日志
+                while(!deque_->empty() && batch.size() < 32) {
+                    std::string str;
+                    if(deque_->pop(str)) {
+                        batch.push_back(std::move(str));
+                    }
+                }
+                
+                std::lock_guard<std::mutex> locker(mtx_);
+                for(auto& log : batch) {
+                    fputs(log.c_str(), fp_);
+                }
+                fflush(fp_);
+            }
         } else {
+            std::lock_guard<std::mutex> locker(mtx_);
             fputs(buff_.Peek(), fp_);
+            fflush(fp_);
         }
         buff_.RetrieveAll();
+        return true;
     }
 }
 
+/**
+ * @brief 根据日志级别添加对应的前缀
+ * @param level 日志级别
+ * @note 0-debug, 1-info, 2-warn, 3-error
+ */
 void Log::AppendLogLevelTitle_(int level) {
     switch(level) {
     case 0:
@@ -176,10 +220,24 @@ void Log::flush() {
 }
 
 void Log::AsyncWrite_() {
-    std::string str = "";
-    while(deque_->pop(str)) {
-        std::lock_guard<std::mutex> locker(mtx_);
-        fputs(str.c_str(), fp_);
+    std::vector<std::string> batch;
+    batch.reserve(32); // 批量处理32条日志
+    
+    while(true) {
+        std::string str;
+        if(!deque_->pop(str)) break;
+        
+        batch.push_back(std::move(str));
+        
+        // 批量写入或队列为空时立即写入
+        if(batch.size() >= 32 || deque_->empty()) {
+            std::lock_guard<std::mutex> locker(mtx_);
+            for(auto& log : batch) {
+                fputs(log.c_str(), fp_);
+            }
+            fflush(fp_);
+            batch.clear();
+        }
     }
 }
 
