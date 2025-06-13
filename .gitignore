@@ -1,0 +1,33 @@
+# Build directories
+build/
+bin/
+.vs/
+
+# Compiled object files
+*.o
+*.a
+*.so
+*.exe
+
+# IDE specific files
+.vscode/
+.idea/
+*.user
+*.suo
+*.ncb
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# CMake build system
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# Dependency directories
+deps/

@@ -1,0 +1,11 @@
+{
+    "server": {
+        "port": 8080,
+        "thread_pool_size": 4,
+        "timeout": 30
+    },
+    "logging": {
+        "level": "info",
+        "file_path": "webserver.log"
+    }
+}
