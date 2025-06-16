@@ -2,7 +2,11 @@
     "server": {
         "port": 8080,
         "thread_pool_size": 4,
-        "timeout": 30
+        "timeout": 30,
+        "max_connections_per_client": 10,
+        "max_requests_per_connection": 100,
+        "keep_alive_timeout": 5,
+        "connection_cleanup_interval": 60
     },
     "logging": {
         "level": "info",

@@ -18,7 +18,16 @@ FetchContent_Declare(
 )
 set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Disable benchmark tests")
 set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "Disable Google Test")
-FetchContent_MakeAvailable(googletest benchmark)
+
+# 引入nlohmann_json
+FetchContent_Declare(
+  nlohmann_json
+  GIT_REPOSITORY https://github.com/nlohmann/json.git
+  GIT_TAG v3.11.2
+)
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+
+FetchContent_MakeAvailable(googletest benchmark nlohmann_json)
 
 # 创建测试和benchmark目录
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test)
@@ -39,11 +48,16 @@ if(BUILD_TESTS)
         test/Logger_test.cpp
         test/Config_test.cpp
         test/MemoryPool_test.cpp
+        test/MultiLevelMemoryPool_test.cpp
+        test/HttpStatus_test.cpp
         src/WebServer.cpp
         src/Logger.cpp
         src/Config.cpp
         src/ThreadPool.cpp
         src/MemoryPool.cpp
+        src/MultiLevelMemoryPool.cpp
+        src/ConnectionManager.cpp
+        src/HttpStatus.cpp
     )
     target_link_libraries(webserver_tests PRIVATE 
         gtest_main 
@@ -74,7 +88,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # 查找nlohmann/json库
-find_package(nlohmann_json REQUIRED)
+# nlohmann/json库已通过FetchContent引入
 
 # 添加可执行文件
 add_executable(webserver
@@ -83,6 +97,8 @@ add_executable(webserver
     src/Logger.cpp
     src/Config.cpp
     src/ThreadPool.cpp
+    src/ConnectionManager.cpp
+    src/HttpStatus.cpp
 )
 
 # 链接库

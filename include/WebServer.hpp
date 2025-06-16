@@ -7,8 +7,12 @@
 #include <memory>
 #include <vector>
 #include <memory>
+#include <mutex>
+#include <unordered_map>
+#include <chrono>
 #include "Config.hpp"
 #include "ThreadPool.hpp"
+#include "ConnectionManager.hpp"
 
 class WebServer {
 public:
@@ -52,17 +56,22 @@ private:
     // 线程池
     std::unique_ptr<ThreadPool> threadPool_;
     
+    // 连接管理器
+    std::unique_ptr<ConnectionManager> connectionManager_;
+    
     // 处理客户端连接
     void handleConnection(int clientSocket);
     
     // 解析HTTP请求
     bool parseRequest(const std::string& request, std::string& method, 
                      std::string& path, std::map<std::string, std::string>& headers,
-                     std::string& body);
+                     std::string& body) const;
     
     // 构建HTTP响应
     std::string buildResponse(int statusCode, const std::string& contentType, 
-                             const std::string& content);
+                             const std::string& content, bool keepAlive = false) const;
+                             
+    // 连接状态管理方法已移至ConnectionManager类
 };
 
 #endif // WEBSERVER_HPP

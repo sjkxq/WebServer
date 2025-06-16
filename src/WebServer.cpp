@@ -9,12 +9,13 @@
 #include <thread>
 
 WebServer::WebServer(const Config& config) : 
-    port_(config.get<int>("server.port", 8080)),
-    threadPoolSize_(config.get<int>("server.thread_pool_size", 4)),
-    timeout_(config.get<int>("server.timeout", 30)),
+    port_(config.getNestedValue<int>("server.port", 8080)),
+    threadPoolSize_(config.getNestedValue<int>("server.thread_pool_size", 4)),
+    timeout_(config.getNestedValue<int>("server.timeout", 30)),
     serverSocket_(-1), 
     running_(false),
-    threadPool_(std::make_unique<ThreadPool>(threadPoolSize_)) {
+    threadPool_(std::make_unique<ThreadPool>(threadPoolSize_)),
+    connectionManager_(std::make_unique<ConnectionManager>(config)) {
     // 添加默认路由
     addRoute("/", [](const std::map<std::string, std::string>& headers, const std::string& body) {
         return "<html><body><h1>Welcome to C++ WebServer</h1></body></html>";
@@ -91,21 +92,55 @@ void WebServer::stop() {
     }
 }
 
+// 连接管理相关方法已移至ConnectionManager类
+
 void WebServer::addRoute(const std::string& path, RequestHandler handler) {
     routes_[path] = handler;
 }
 
 void WebServer::handleConnection(int clientSocket) {
     LOG_INFO("Handling connection (socket: " + std::to_string(clientSocket) + ")");
-    char buffer[4096] = {0};
-    ssize_t bytesRead = read(clientSocket, buffer, sizeof(buffer) - 1);
     
-    if (bytesRead > 0) {
+    bool keepAlive = false;
+    std::string httpVersion = "HTTP/1.1"; // 默认假设为HTTP/1.1
+    
+    do {
+        // 设置读取超时
+        connectionManager_->setSocketTimeout(clientSocket);
+        
+        char buffer[4096] = {0};
+        ssize_t bytesRead = read(clientSocket, buffer, sizeof(buffer) - 1);
+        
+        if (bytesRead <= 0) {
+            LOG_INFO("Connection closed or timed out (socket: " + std::to_string(clientSocket) + ")");
+            break; // 连接已关闭或出错
+        }
+        
         LOG_INFO("Received request (socket: " + std::to_string(clientSocket) + ", bytes: " + std::to_string(bytesRead) + ")");
         std::string method, path, body;
         std::map<std::string, std::string> headers;
         
         if (parseRequest(buffer, method, path, headers, body)) {
+            // 从请求行中提取HTTP版本
+            std::istringstream requestLine(buffer);
+            std::string temp;
+            requestLine >> temp >> temp >> httpVersion;
+            
+            // 使用ConnectionManager确定是否保持连接
+            keepAlive = connectionManager_->shouldKeepAlive(headers, httpVersion);
+            
+            // 更新连接状态
+            connectionManager_->updateConnectionState(clientSocket, keepAlive);
+            
+            // 检查连接是否超时或超过最大请求数
+            if (connectionManager_->isConnectionTimedOut(clientSocket)) {
+                LOG_INFO("Connection timed out or reached max requests (socket: " + std::to_string(clientSocket) + ")");
+                keepAlive = false;
+            }
+            
+            LOG_INFO("Connection will be " + std::string(keepAlive ? "kept alive" : "closed") + 
+                     " after response (socket: " + std::to_string(clientSocket) + ")");
+            
             std::string response;
             
             // 查找路由处理函数
@@ -113,24 +148,33 @@ void WebServer::handleConnection(int clientSocket) {
             if (it != routes_.end()) {
                 LOG_INFO("Found route handler for path: " + path);
                 std::string content = it->second(headers, body);
-                response = buildResponse(200, "text/html", content);
+                response = buildResponse(200, "text/html", content, keepAlive);
             } else {
                 LOG_WARNING("No route handler found for path: " + path);
-                response = buildResponse(404, "text/plain", "404 Not Found");
+                response = buildResponse(404, "text/plain", "404 Not Found", keepAlive);
             }
             
             ssize_t bytesSent = write(clientSocket, response.c_str(), response.length());
             LOG_INFO("Sent response (socket: " + std::to_string(clientSocket) + 
                      ", bytes: " + std::to_string(bytesSent) + ")");
+        } else {
+            keepAlive = false; // 解析失败，关闭连接
         }
-    }
+        
+        // 定期清理超时连接
+        connectionManager_->cleanupTimedOutConnections();
+        
+        // 如果不保持连接，则退出循环
+    } while (keepAlive && running_);
     
-    close(clientSocket);
+    // 关闭并清理连接
+    connectionManager_->closeConnection(clientSocket);
+    LOG_INFO("Connection closed (socket: " + std::to_string(clientSocket) + ")");
 }
 
 bool WebServer::parseRequest(const std::string& request, std::string& method, 
                            std::string& path, std::map<std::string, std::string>& headers,
-                           std::string& body) {
+                           std::string& body) const {
     std::istringstream iss(request);
     std::string line;
     
@@ -138,6 +182,15 @@ bool WebServer::parseRequest(const std::string& request, std::string& method,
     if (std::getline(iss, line)) {
         std::istringstream lineStream(line);
         lineStream >> method >> path;
+        
+        // 确保方法和路径都被正确解析
+        if (method.empty() || path.empty()) {
+            LOG_WARNING("Failed to parse request line: " + line);
+            return false;
+        }
+    } else {
+        LOG_WARNING("Empty request");
+        return false;
     }
     
     // 解析头部
@@ -150,6 +203,11 @@ bool WebServer::parseRequest(const std::string& request, std::string& method,
                 value.pop_back();
             }
             headers[key] = value;
+            
+            // 记录日志，显示识别到的Connection头部
+            if (key == "Connection") {
+                LOG_INFO("Detected Connection header: " + value);
+            }
         }
     }
     
@@ -164,7 +222,7 @@ bool WebServer::parseRequest(const std::string& request, std::string& method,
 }
 
 std::string WebServer::buildResponse(int statusCode, const std::string& contentType, 
-                                   const std::string& content) {
+                                   const std::string& content, bool keepAlive) const {
     std::stringstream response;
     
     // 状态行
@@ -179,7 +237,7 @@ std::string WebServer::buildResponse(int statusCode, const std::string& contentT
     // 响应头
     response << "Content-Type: " << contentType << "\r\n";
     response << "Content-Length: " << content.length() << "\r\n";
-    response << "Connection: close\r\n";
+    response << "Connection: " << (keepAlive ? "keep-alive" : "close") << "\r\n";
     response << "\r\n";
     
     // 响应体

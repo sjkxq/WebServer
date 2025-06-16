@@ -23,7 +23,7 @@ namespace ColorOutput {
     }
 
     // Check if terminal supports color
-    bool isColorSupported() {
+    inline bool isColorSupported() {
         const char* term = std::getenv("TERM");
         if (term == nullptr) return false;
         return std::string(term) != "dumb";
