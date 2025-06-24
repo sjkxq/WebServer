@@ -58,6 +58,7 @@ if(BUILD_TESTS)
         src/MultiLevelMemoryPool.cpp
         src/ConnectionManager.cpp
         src/HttpStatus.cpp
+        src/Router.cpp
     )
     target_link_libraries(webserver_tests PRIVATE 
         gtest_main 
@@ -99,6 +100,7 @@ add_executable(webserver
     src/ThreadPool.cpp
     src/ConnectionManager.cpp
     src/HttpStatus.cpp
+    src/Router.cpp
 )
 
 # 链接库
