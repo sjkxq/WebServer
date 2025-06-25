@@ -1,6 +1,6 @@
 #include "WebServer.hpp"
 #include "Logger.hpp"
-#include "HttpStatus.hpp"
+#include "HttpParser.hpp"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -103,11 +103,11 @@ void WebServer::handleConnection(int clientSocket) {
     buffer[bytesRead] = '\0';
     std::string request(buffer.data());
     
-    // 解析请求
+    // 使用HttpParser解析请求
     std::string path;
     std::map<std::string, std::string> headers;
     std::string body;
-    std::tie(path, headers, body) = parseRequest(request);
+    std::tie(path, headers, body) = HttpParser::parseRequest(request);
     LOG_INFO("Received request for path: " + path);
     
     // 处理请求
@@ -115,69 +115,15 @@ void WebServer::handleConnection(int clientSocket) {
     std::string content;
     std::tie(found, content) = router_->handleRequest(path, headers, body);
     
-    // 构建响应
+    // 使用HttpParser构建响应
     std::string response;
     if (found) {
-        response = buildResponse(HttpStatus::OK, content);
+        response = HttpParser::buildResponse(HttpStatus::OK, content);
     } else {
-        response = buildResponse(HttpStatus::NOT_FOUND, "<html><body><h1>404 Not Found</h1></body></html>");
+        response = HttpParser::buildResponse(HttpStatus::NOT_FOUND, "<html><body><h1>404 Not Found</h1></body></html>");
     }
     
     // 发送响应
     send(clientSocket, response.c_str(), response.size(), 0);
     close(clientSocket);
-}
-
-std::tuple<std::string, std::map<std::string, std::string>, std::string> WebServer::parseRequest(const std::string& request) {
-    std::istringstream iss(request);
-    std::string line;
-    std::string method, path, version;
-    std::map<std::string, std::string> headers;
-    std::string body;
-    
-    // 解析请求行
-    std::getline(iss, line);
-    std::istringstream lineStream(line);
-    lineStream >> method >> path >> version;
-    
-    // 解析请求头
-    while (std::getline(iss, line) && line != "\r") {
-        size_t pos = line.find(':');
-        if (pos != std::string::npos) {
-            std::string key = line.substr(0, pos);
-            std::string value = line.substr(pos + 1);
-            // 去除前导空格
-            while (!value.empty() && (value[0] == ' ' || value[0] == '\t')) {
-                value.erase(0, 1);
-            }
-            // 去除尾部的\r
-            if (!value.empty() && value.back() == '\r') {
-                value.pop_back();
-            }
-            headers[key] = value;
-        }
-    }
-    
-    // 解析请求体
-    std::ostringstream bodyStream;
-    while (std::getline(iss, line)) {
-        bodyStream << line << "\n";
-    }
-    body = bodyStream.str();
-    
-    return std::make_tuple(path, headers, body);
-}
-
-std::string WebServer::buildResponse(HttpStatus statusCode, const std::string& content, const std::string& contentType) {
-    std::ostringstream response;
-    HttpStatusHandler& statusHandler = HttpStatusHandler::getInstance();
-    
-    response << "HTTP/1.1 " << static_cast<int>(statusCode) << " " << statusHandler.getStatusMessage(statusCode) << "\r\n";
-    response << "Content-Type: " << contentType << "\r\n";
-    response << "Content-Length: " << content.size() << "\r\n";
-    response << "Connection: close\r\n";
-    response << "\r\n";
-    response << content;
-    
-    return response.str();
 }

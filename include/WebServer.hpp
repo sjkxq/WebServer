@@ -9,6 +9,7 @@
 #include "Router.hpp"
 #include "Config.hpp"
 #include "HttpStatus.hpp"
+#include "HttpParser.hpp"
 
 class WebServer {
 public:
@@ -27,12 +28,6 @@ public:
 private:
     // 处理客户端连接
     void handleConnection(int clientSocket);
-    
-    // 解析HTTP请求
-    std::tuple<std::string, std::map<std::string, std::string>, std::string> parseRequest(const std::string& request);
-    
-    // 构建HTTP响应
-    std::string buildResponse(HttpStatus statusCode, const std::string& content, const std::string& contentType = "text/html");
 
     int port_;
     bool running_;

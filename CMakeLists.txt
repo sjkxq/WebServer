@@ -59,6 +59,7 @@ if(BUILD_TESTS)
         src/ConnectionManager.cpp
         src/HttpStatus.cpp
         src/Router.cpp
+        src/HttpParser.cpp
     )
     target_link_libraries(webserver_tests PRIVATE 
         gtest_main 
@@ -101,6 +102,7 @@ add_executable(webserver
     src/ConnectionManager.cpp
     src/HttpStatus.cpp
     src/Router.cpp
+    src/HttpParser.cpp
 )
 
 # 链接库

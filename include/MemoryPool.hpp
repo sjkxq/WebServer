@@ -7,10 +7,10 @@
 namespace WebServer {
 
 /**
- * @brief A thread-safe memory pool for fixed-size memory blocks
+ * @brief 用于固定大小内存块的线程安全内存池
  * 
- * @tparam T Type of objects to allocate
- * @tparam BlockSize Number of objects per memory block
+ * @tparam T 要分配的对象类型
+ * @tparam BlockSize 每个内存块中的对象数量
  */
 template<typename T, size_t BlockSize = 1024>
 class MemoryPool {
@@ -18,19 +18,19 @@ public:
     MemoryPool();
     ~MemoryPool();
 
-    // Disable copy
+    // 禁用复制
     MemoryPool(const MemoryPool&) = delete;
     MemoryPool& operator=(const MemoryPool&) = delete;
 
     /**
-     * @brief Allocate memory for an object
-     * @return Pointer to allocated memory
+     * @brief 为对象分配内存
+     * @return 指向已分配内存的指针
      */
     T* allocate();
 
     /**
-     * @brief Deallocate memory
-     * @param ptr Pointer to memory to deallocate
+     * @brief 释放内存
+     * @param ptr 指向要释放的内存的指针
      */
     void deallocate(T* ptr);
 
@@ -45,16 +45,16 @@ private:
         Block* next;
     };
 
-    // Current block
+    // 当前内存块
     Block* currentBlock_;
     
-    // Free slots list
+    // 空闲槽位列表
     Slot* freeSlots_;
     
-    // All allocated blocks
+    // 所有已分配的内存块
     std::vector<std::unique_ptr<Block>> blocks_;
     
-    // Mutex for thread safety
+    // 用于线程安全的互斥锁
     std::mutex mutex_;
 };
 

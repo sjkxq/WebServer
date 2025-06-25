@@ -9,43 +9,43 @@
 namespace WebServer {
 
 /**
- * @brief A thread-safe multi-level memory pool that supports different sizes of memory allocation
+ * @brief 支持不同大小内存分配的线程安全多级内存池
  * 
- * The multi-level memory pool maintains several memory pools of different sizes
- * and automatically chooses the most appropriate pool for each allocation request.
+ * 多级内存池维护多个不同大小的内存池，
+ * 并自动为每个分配请求选择最合适的内存池。
  */
 class MultiLevelMemoryPool {
 public:
-    // Constants for memory pool configuration
-    static constexpr size_t MIN_BLOCK_SIZE = 8;      // Minimum block size (in bytes)
-    static constexpr size_t MAX_BLOCK_SIZE = 4096;   // Maximum block size (in bytes)
-    static constexpr size_t LEVEL_COUNT = 10;        // Number of memory pool levels
+    // 内存池配置常量
+    static constexpr size_t MIN_BLOCK_SIZE = 8;      // 最小块大小（字节）
+    static constexpr size_t MAX_BLOCK_SIZE = 4096;   // 最大块大小（字节）
+    static constexpr size_t LEVEL_COUNT = 10;        // 内存池级别数量
 
     MultiLevelMemoryPool();
     ~MultiLevelMemoryPool();  // 移除 = default，因为我们有自定义实现
 
-    // Disable copy
+    // 禁用复制
     MultiLevelMemoryPool(const MultiLevelMemoryPool&) = delete;
     MultiLevelMemoryPool& operator=(const MultiLevelMemoryPool&) = delete;
 
     /**
-     * @brief Allocate memory of specified size
-     * @param size Size of memory to allocate (in bytes)
-     * @return Pointer to allocated memory, or nullptr if size is too large
+     * @brief 分配指定大小的内存
+     * @param size 要分配的内存大小（字节）
+     * @return 指向已分配内存的指针，如果大小过大则返回nullptr
      */
     void* allocate(size_t size);
 
     /**
-     * @brief Deallocate memory
-     * @param ptr Pointer to memory to deallocate
+     * @brief 释放内存
+     * @param ptr 指向要释放的内存的指针
      */
     void deallocate(void* ptr);
 
 private:
     /**
-     * @brief Find the appropriate pool level for the given size
-     * @param size Size of memory requested
-     * @return Pool level index, or -1 if size is too large
+     * @brief 为给定大小找到合适的内存池级别
+     * @param size 请求的内存大小
+     * @return 内存池级别索引，如果大小过大则返回-1
      */
     int findPoolLevel(size_t size) const;
 

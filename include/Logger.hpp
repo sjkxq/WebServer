@@ -7,7 +7,7 @@
 #include <mutex>
 #include <memory>
 
-// Forward declaration for test class
+// 测试类的前向声明
 class LoggerTest;
 
 class Logger {
