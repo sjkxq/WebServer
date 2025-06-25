@@ -9,6 +9,8 @@
 #include <thread>
 #include <vector>
 
+namespace webserver {
+
 WebServer::WebServer(const Config& config) 
     : port_(config.get<int>("port", 8080)), 
       running_(false), 
@@ -127,3 +129,5 @@ void WebServer::handleConnection(int clientSocket) {
     send(clientSocket, response.c_str(), response.size(), 0);
     close(clientSocket);
 }
+
+} // namespace webserver

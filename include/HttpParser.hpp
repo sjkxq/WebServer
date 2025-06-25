@@ -1,18 +1,36 @@
-#ifndef HTTP_PARSER_HPP
-#define HTTP_PARSER_HPP
+#ifndef WEBSERVER_HTTP_PARSER_HPP
+#define WEBSERVER_HTTP_PARSER_HPP
 
 #include <string>
 #include <map>
 #include <tuple>
 #include "HttpStatus.hpp"
 
+namespace webserver {
+
+/**
+ * @class HttpParser
+ * @brief 处理HTTP请求和响应的解析与构建
+ */
 class HttpParser {
 public:
-    // 解析HTTP请求，返回路径、头部和正文
+    /**
+     * @brief 解析HTTP请求
+     * @param request HTTP请求字符串
+     * @return 包含路径、头部和正文的元组
+     */
     static std::tuple<std::string, std::map<std::string, std::string>, std::string> parseRequest(const std::string& request);
     
-    // 构建HTTP响应
+    /**
+     * @brief 构建HTTP响应
+     * @param statusCode HTTP状态码
+     * @param content 响应内容
+     * @param contentType 内容类型，默认为"text/html"
+     * @return 完整的HTTP响应字符串
+     */
     static std::string buildResponse(HttpStatus statusCode, const std::string& content, const std::string& contentType = "text/html");
 };
 
-#endif // HTTP_PARSER_HPP
+} // namespace webserver
+
+#endif // WEBSERVER_HTTP_PARSER_HPP

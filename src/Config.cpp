@@ -6,6 +6,23 @@
 
 using json = nlohmann::json;
 
+namespace webserver {
+
+// 辅助函数：分割路径字符串
+std::vector<std::string> splitPath(const std::string& path) {
+    std::vector<std::string> parts;
+    std::stringstream ss(path);
+    std::string part;
+    
+    while (std::getline(ss, part, '.')) {
+        if (!part.empty()) {
+            parts.push_back(part);
+        }
+    }
+    
+    return parts;
+}
+
 bool Config::loadFromFile(const std::string& filePath) {
     try {
         std::ifstream file(filePath);
@@ -31,21 +48,6 @@ T Config::get(const std::string& key, const T& defaultValue) const {
 template<typename T>
 void Config::set(const std::string& key, const T& value) {
     config_[key] = value;
-}
-
-// 辅助函数：分割路径字符串
-std::vector<std::string> splitPath(const std::string& path) {
-    std::vector<std::string> parts;
-    std::stringstream ss(path);
-    std::string part;
-    
-    while (std::getline(ss, part, '.')) {
-        if (!part.empty()) {
-            parts.push_back(part);
-        }
-    }
-    
-    return parts;
 }
 
 // 获取嵌套JSON对象（只读）
@@ -139,3 +141,5 @@ template void Config::setNestedValue<std::string>(const std::string&, const std:
 
 template bool Config::getNestedValue<bool>(const std::string&, const bool&) const;
 template void Config::setNestedValue<bool>(const std::string&, const bool&);
+
+} // namespace webserver

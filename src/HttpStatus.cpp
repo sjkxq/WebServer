@@ -1,5 +1,7 @@
 #include "HttpStatus.hpp"
 
+namespace webserver {
+
 HttpStatusHandler& HttpStatusHandler::getInstance() {
     static HttpStatusHandler instance;
     return instance;
@@ -93,3 +95,5 @@ bool HttpStatusHandler::isServerError(HttpStatus status) {
     int code = static_cast<int>(status);
     return code >= 500 && code < 600;
 }
+
+} // namespace webserver

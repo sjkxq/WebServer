@@ -2,6 +2,8 @@
 #include <sstream>
 #include "Logger.hpp"
 
+namespace webserver {
+
 std::tuple<std::string, std::map<std::string, std::string>, std::string> HttpParser::parseRequest(const std::string& request) {
     std::istringstream iss(request);
     std::string line;
@@ -68,3 +70,5 @@ std::string HttpParser::buildResponse(HttpStatus statusCode, const std::string& 
     
     return response.str();
 }
+
+} // namespace webserver

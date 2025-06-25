@@ -2,6 +2,8 @@
 #include "Logger.hpp"
 #include <unistd.h>
 
+namespace webserver {
+
 ConnectionManager::ConnectionManager(const Config& config)
     : config_(config), running_(true) {
 }
@@ -46,3 +48,5 @@ void ConnectionManager::stopAll() {
     // 清空连接列表
     connections_.clear();
 }
+
+} // namespace webserver

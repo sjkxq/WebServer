@@ -1,8 +1,10 @@
-#ifndef HTTP_STATUS_HPP
-#define HTTP_STATUS_HPP
+#ifndef WEBSERVER_HTTP_STATUS_HPP
+#define WEBSERVER_HTTP_STATUS_HPP
 
 #include <string>
 #include <unordered_map>
+
+namespace webserver {
 
 /**
  * @brief HTTP状态码枚举类
@@ -124,4 +126,6 @@ private:
     std::unordered_map<int, std::string> statusMessages_;  // 状态码到状态消息的映射
 };
 
-#endif // HTTP_STATUS_HPP
+} // namespace webserver
+
+#endif // WEBSERVER_HTTP_STATUS_HPP

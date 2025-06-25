@@ -4,18 +4,48 @@
 #include <iomanip>
 #include <sstream>
 
+namespace webserver {
+
+// 单例实例获取
+Logger& Logger::getInstance() {
+    static Logger instance;
+    return instance;
+}
+
+// 构造函数
+Logger::Logger() 
+    : minLevel(Level::INFO), 
+      outputStream(&std::cout), 
+      consoleOutput(true) {
+}
+
+// 析构函数
+Logger::~Logger() {
+    if (fileStream.is_open()) {
+        fileStream.close();
+    }
+}
+
 void Logger::setLogFile(const std::string& filename) {
     std::lock_guard<std::mutex> lock(logMutex);
-    logFile = std::make_unique<std::ofstream>(filename, std::ios::app);
-    if (!logFile->is_open()) {
+    if (fileStream.is_open()) {
+        fileStream.close();
+    }
+    
+    fileStream.open(filename, std::ios::app);
+    if (!fileStream.is_open()) {
         std::cerr << "无法打开日志文件: " << filename << std::endl;
-        logFile.reset();
     }
 }
 
 void Logger::setStream(std::ostream& stream) {
     std::lock_guard<std::mutex> lock(logMutex);
     outputStream = &stream;
+}
+
+void Logger::setConsoleOutput(bool enable) {
+    std::lock_guard<std::mutex> lock(logMutex);
+    consoleOutput = enable;
 }
 
 void Logger::log(Level level, const std::string& message) {
@@ -29,24 +59,32 @@ void Logger::log(Level level, const std::string& message) {
 
     std::lock_guard<std::mutex> lock(logMutex);
     
-    // 输出到设置的流
-    *outputStream << formattedMessage << std::endl;
+    // 输出到设置的流（如果启用控制台输出）
+    if (consoleOutput && outputStream) {
+        *outputStream << formattedMessage << std::endl;
+    }
     
     // 输出到文件（如果已设置）
-    if (logFile && logFile->is_open()) {
-        *logFile << formattedMessage << std::endl;
-        logFile->flush();
+    if (fileStream.is_open()) {
+        fileStream << formattedMessage << std::endl;
+        fileStream.flush();
     }
 }
 
 std::string Logger::getLevelString(Level level) const {
     switch (level) {
+        case Level::TRACE:
+            return "TRACE";
+        case Level::DEBUG_LEVEL:
+            return "DEBUG";
         case Level::INFO:
             return "INFO";
         case Level::WARNING:
             return "WARNING";
         case Level::ERROR:
             return "ERROR";
+        case Level::FATAL:
+            return "FATAL";
         default:
             return "UNKNOWN";
     }
@@ -64,3 +102,5 @@ std::string Logger::getCurrentTimestamp() const {
     
     return ss.str();
 }
+
+} // namespace webserver

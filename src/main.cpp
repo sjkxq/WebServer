@@ -5,7 +5,7 @@
 #include <cstdlib>
 
 // 全局WebServer指针，用于信号处理
-WebServer* server = nullptr;
+webserver::WebServer* server = nullptr;
 
 // 信号处理函数
 void signalHandler(int signum) {
@@ -22,13 +22,13 @@ int main(int argc, char* argv[]) {
 
     try {
         // 加载配置文件
-        Config config;
+        webserver::Config config;
         if (!config.loadFromFile("config.json")) {
             std::cerr << "Warning: Failed to load config.json, using default settings" << std::endl;
         }
 
         // 创建服务器实例
-        server = new WebServer(config);
+        server = new webserver::WebServer(config);
 
         // 添加一些示例路由
         server->addRoute("/hello", [](const std::map<std::string, std::string>& headers, const std::string& body) {

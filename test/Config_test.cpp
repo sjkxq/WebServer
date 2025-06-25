@@ -1,4 +1,5 @@
  #include <gtest/gtest.h>
+ #include <filesystem>
 #include "Config.hpp"
 #include <fstream>
 #include <filesystem>
@@ -18,17 +19,17 @@ protected:
 
     void TearDown() override {
         // 删除临时配置文件
-        std::filesystem::remove("test_config.ini");
+        std::filesystem::remove("test_config.json");
     }
 };
 
 TEST_F(ConfigTest, LoadConfig) {
-    Config config;
+    webserver::Config config;
     EXPECT_TRUE(config.loadFromFile("test_config.json"));
 }
 
 TEST_F(ConfigTest, GetValues) {
-    Config config;
+    webserver::Config config;
     config.loadFromFile("test_config.json");
     EXPECT_EQ(config.get<int>("port"), 8080);
     EXPECT_EQ(config.get<int>("threads"), 4);
@@ -36,7 +37,7 @@ TEST_F(ConfigTest, GetValues) {
 }
 
 TEST_F(ConfigTest, DefaultValues) {
-    Config config;
+    webserver::Config config;
     config.loadFromFile("test_config.json");
     
     // 测试不存在的配置项返回默认值
@@ -45,6 +46,6 @@ TEST_F(ConfigTest, DefaultValues) {
 }
 
 TEST_F(ConfigTest, InvalidConfig) {
-    Config config;
+    webserver::Config config;
     EXPECT_FALSE(config.loadFromFile("nonexistent.json"));
 }

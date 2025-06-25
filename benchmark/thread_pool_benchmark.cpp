@@ -5,7 +5,7 @@
 static void BM_ThreadPoolSubmit(benchmark::State& state) {
     ThreadPool pool(state.range(0));
     for (auto _ : state) {
-        pool.submit([](){});
+        pool.enqueue([](){});
     }
 }
 BENCHMARK(BM_ThreadPoolSubmit)
@@ -19,13 +19,11 @@ static void BM_ThreadPoolThroughput(benchmark::State& state) {
     std::atomic<int> counter{0};
     for (auto _ : state) {
         for (int i = 0; i < state.range(1); ++i) {
-            pool.submit([&counter](){ counter++; });
+            pool.enqueue([&counter](){ counter++; });
         }
-        pool.waitAll();
+        // ThreadPool doesn't have waitAll(), futures are handled automatically
     }
 }
 BENCHMARK(BM_ThreadPoolThroughput)
     ->Args({4, 1000})    // 4线程, 1000任务
     ->Args({8, 10000});  // 8线程, 10000任务
-
-BENCHMARK_MAIN();

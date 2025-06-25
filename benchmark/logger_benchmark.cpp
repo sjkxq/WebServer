@@ -4,7 +4,8 @@
 
 // 测试不同日志级别的性能
 static void BM_LoggerPerformance(benchmark::State& state) {
-    Logger::setMinLevel(static_cast<Logger::Level>(state.range(0)));
+    webserver::Logger::getInstance().setConsoleOutput(false);
+    webserver::Logger::getInstance().setLogLevel(static_cast<webserver::Logger::Level>(state.range(0)));
     for (auto _ : state) {
         LOG_DEBUG("This is a debug message");
         LOG_INFO("This is an info message");
@@ -20,7 +21,8 @@ BENCHMARK(BM_LoggerPerformance)
 
 // 测试多线程日志性能
 static void BM_MultiThreadLogger(benchmark::State& state) {
-    Logger::setMinLevel(Logger::Level::INFO);
+    webserver::Logger::getInstance().setConsoleOutput(false);
+    webserver::Logger::getInstance().setLogLevel(webserver::Logger::Level::INFO);
     const int thread_count = state.range(0);
     const int logs_per_thread = 1000;
     
@@ -43,5 +45,3 @@ BENCHMARK(BM_MultiThreadLogger)
     ->Arg(1)    // 1线程
     ->Arg(4)    // 4线程
     ->Arg(8);   // 8线程
-
-BENCHMARK_MAIN();

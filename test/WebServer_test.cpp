@@ -19,11 +19,11 @@ protected:
         // 清理测试
     }
     
-    Config testConfig;
+    webserver::Config testConfig;
 };
 
 TEST_F(WebServerTest, Initialization) {
-    WebServer server(testConfig);
+    webserver::WebServer server(testConfig);
     EXPECT_EQ(testConfig.get<int>("server.port", 8080), 8080);
     // 可以添加更多初始化测试
 }

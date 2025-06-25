@@ -6,26 +6,28 @@
 class LoggerTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        logger.setLogLevel(Logger::Level::DEBUG);
+        auto& logger = webserver::Logger::getInstance();
+        logger.setLogLevel(webserver::Logger::Level::DEBUG_LEVEL);
         logger.setStream(output);
     }
 
     void TearDown() override {
+        auto& logger = webserver::Logger::getInstance();
         logger.setStream(std::cout);
     }
 
-    Logger logger;
     std::ostringstream output;
 };
 
 TEST_F(LoggerTest, LogLevelFiltering) {
-    logger.log(Logger::Level::ERROR, "Error message");
-    logger.log(Logger::Level::WARNING, "Warning message");
-    logger.log(Logger::Level::INFO, "Info message");
-    logger.log(Logger::Level::DEBUG, "Debug message");
+    auto& logger = webserver::Logger::getInstance();
+    logger.log(webserver::Logger::Level::ERROR, "Error message");
+    logger.log(webserver::Logger::Level::WARNING, "Warning message");
+    logger.log(webserver::Logger::Level::INFO, "Info message");
+    logger.log(webserver::Logger::Level::DEBUG_LEVEL, "Debug message");
     
-    logger.setLogLevel(Logger::Level::WARNING);
-    logger.log(Logger::Level::INFO, "This should not appear");
+    logger.setLogLevel(webserver::Logger::Level::WARNING);
+    logger.log(webserver::Logger::Level::INFO, "This should not appear");
     
     auto logContent = output.str();
     EXPECT_TRUE(logContent.find("Error message") != std::string::npos);
@@ -36,18 +38,20 @@ TEST_F(LoggerTest, LogLevelFiltering) {
 }
 
 TEST_F(LoggerTest, LogFormat) {
-    logger.log(Logger::Level::ERROR, "Test message");
+    auto& logger = webserver::Logger::getInstance();
+    logger.log(webserver::Logger::Level::ERROR, "Test message");
     auto logContent = output.str();
     EXPECT_TRUE(logContent.find("[ERROR] Test message") != std::string::npos);
 }
 
 TEST_F(LoggerTest, ThreadSafety) {
+    auto& logger = webserver::Logger::getInstance();
     const int threadCount = 10;
     std::vector<std::thread> threads;
     
     for (int i = 0; i < threadCount; ++i) {
-        threads.emplace_back([this, i] {
-            logger.log(Logger::Level::INFO, "Thread " + std::to_string(i));
+        threads.emplace_back([&logger, i] {
+            logger.log(webserver::Logger::Level::INFO, "Thread " + std::to_string(i));
         });
     }
     
@@ -62,9 +66,10 @@ TEST_F(LoggerTest, ThreadSafety) {
 }
 
 TEST_F(LoggerTest, StreamRedirection) {
+    auto& logger = webserver::Logger::getInstance();
     std::ostringstream testStream;
     logger.setStream(testStream);
-    logger.log(Logger::Level::INFO, "Stream test");
+    logger.log(webserver::Logger::Level::INFO, "Stream test");
     
     EXPECT_TRUE(testStream.str().find("Stream test") != std::string::npos);
     EXPECT_TRUE(output.str().empty());  // 原始流不应有输出

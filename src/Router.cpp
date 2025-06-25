@@ -1,6 +1,8 @@
 #include "Router.hpp"
 #include "Logger.hpp"
 
+namespace webserver {
+
 Router::Router() {
     // 添加默认路由
     addRoute("/", [](const std::map<std::string, std::string>& headers, const std::string& body) {
@@ -25,3 +27,5 @@ std::pair<bool, std::string> Router::handleRequest(const std::string& path,
     LOG_WARNING("No route handler found for path: " + path);
     return {false, ""};
 }
+
+} // namespace webserver
