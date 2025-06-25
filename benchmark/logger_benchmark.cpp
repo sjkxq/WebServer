@@ -2,6 +2,16 @@
 #include "Logger.hpp"
 #include <thread>
 
+class LoggerBenchmarkConfig {
+public:
+    LoggerBenchmarkConfig() {
+        webserver::Logger::getInstance().setLogFile("benchmark_logger.log");
+        webserver::Logger::getInstance().setConsoleOutput(false);
+    }
+};
+
+static LoggerBenchmarkConfig loggerBenchmarkConfig;
+
 // 测试不同日志级别的性能
 static void BM_LoggerPerformance(benchmark::State& state) {
     webserver::Logger::getInstance().setConsoleOutput(false);

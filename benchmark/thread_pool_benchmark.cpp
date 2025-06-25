@@ -1,5 +1,16 @@
 #include <benchmark/benchmark.h>
 #include "ThreadPool.hpp"
+#include "Logger.hpp"
+
+class LoggerConfig {
+public:
+    LoggerConfig() {
+        webserver::Logger::getInstance().setLogFile("benchmark_threadpool.log");
+        webserver::Logger::getInstance().setConsoleOutput(false);
+    }
+};
+
+static LoggerConfig loggerConfig;
 
 // 测试线程池任务提交性能
 static void BM_ThreadPoolSubmit(benchmark::State& state) {
