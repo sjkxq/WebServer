@@ -5,8 +5,18 @@
 ```cpp
 #include "Logger.hpp"
 
+// 使用命名空间
+using namespace webserver;
+
 // 设置日志级别(默认为INFO)
-Logger::setMinLevel(Logger::Level::DEBUG);
+Logger::getInstance().setMinLevel(Logger::Level::DEBUG);
+
+// 配置日志输出到文件
+Logger::getInstance().setLogFile("application.log");
+
+// 启用或禁用控制台输出
+Logger::getInstance().setConsoleOutput(true);  // 启用（默认）
+// Logger::getInstance().setConsoleOutput(false);  // 禁用
 
 // 记录不同级别日志
 LOG_ERROR("This is an error message");

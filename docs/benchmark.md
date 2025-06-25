@@ -14,9 +14,13 @@ BM_LoggerPerformance/3            2979 ns         2979 ns       232739
 
 ## 性能测试最佳实践
 
-1. 在性能测试前禁用控制台日志输出以获得准确结果：
+1. 在性能测试前配置日志系统以获得准确结果：
 ```cpp
-Logger::getInstance().setConsoleOutput(false);
+// 禁用控制台日志输出
+webserver::Logger::getInstance().setConsoleOutput(false);
+
+// 将日志输出重定向到文件
+webserver::Logger::getInstance().setLogFile("benchmark.log");
 ```
 
 2. 使用Release模式构建以获得真实性能数据：
