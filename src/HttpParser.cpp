@@ -71,4 +71,39 @@ std::string HttpParser::buildResponse(HttpStatus statusCode, const std::string& 
     return response.str();
 }
 
+std::string HttpParser::buildChunkedResponse(HttpStatus statusCode, const std::string& content, const std::string& contentType) {
+    std::ostringstream response;
+    HttpStatusHandler& statusHandler = HttpStatusHandler::getInstance();
+    
+    // 获取状态消息
+    std::string statusMessage = statusHandler.getStatusMessage(statusCode);
+    
+    // 根据状态码类型记录不同级别的日志
+    if (HttpStatusHandler::isSuccessful(statusCode)) {
+        LOG_INFO("Sending chunked successful response: " + std::to_string(static_cast<int>(statusCode)) + " " + statusMessage);
+    } else if (HttpStatusHandler::isClientError(statusCode)) {
+        LOG_WARNING("Sending chunked client error response: " + std::to_string(static_cast<int>(statusCode)) + " " + statusMessage);
+    } else if (HttpStatusHandler::isServerError(statusCode)) {
+        LOG_ERROR("Sending chunked server error response: " + std::to_string(static_cast<int>(statusCode)) + " " + statusMessage);
+    }
+    
+    // 构建响应头(不带Content-Length)
+    response << "HTTP/1.1 " << static_cast<int>(statusCode) << " " << statusMessage << "\r\n";
+    response << "Content-Type: " << contentType << "\r\n";
+    response << "Transfer-Encoding: chunked\r\n";
+    response << "Connection: close\r\n";
+    response << "\r\n";
+    
+    // 构建分块内容
+    if (!content.empty()) {
+        response << std::hex << content.size() << "\r\n";
+        response << content << "\r\n";
+    }
+    
+    // 结束块
+    response << "0\r\n\r\n";
+    
+    return response.str();
+}
+
 } // namespace webserver

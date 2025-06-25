@@ -8,6 +8,13 @@
         "keep_alive_timeout": 5,
         "connection_cleanup_interval": 60
     },
+    "https": {
+        "enabled": false,
+        "port": 8443,
+        "ssl_cert": "",
+        "ssl_key": "",
+        "ssl_protocols": "TLSv1.2+TLSv1.3"
+    },
     "logging": {
         "level": "info",
         "file_path": "webserver.log"

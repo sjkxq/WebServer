@@ -47,3 +47,9 @@ endif()
 
 # 查找线程库
 find_package(Threads REQUIRED)
+
+# 查找zlib库
+find_package(ZLIB REQUIRED)
+
+# 查找OpenSSL库
+find_package(OpenSSL REQUIRED)

@@ -1,5 +1,6 @@
 #include "WebServer.hpp"
 #include "Config.hpp"
+#include "../include/HttpParser.hpp"
 #include <iostream>
 #include <csignal>
 #include <cstdlib>
@@ -40,6 +41,11 @@ int main(int argc, char* argv[]) {
                    "<h1>About This Server</h1>"
                    "<p>This is a simple C++ WebServer implementation.</p>"
                    "</body></html>";
+        });
+
+        // 测试分块传输的路由
+        server->addRoute("/chunked", [](const std::map<std::string, std::string>& headers, const std::string& body) {
+            return webserver::HttpParser::buildChunkedResponse(webserver::HttpStatus::OK, "This is a chunked response example");
         });
 
         // 启动服务器

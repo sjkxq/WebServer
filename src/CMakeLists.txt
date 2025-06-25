@@ -53,10 +53,14 @@ target_link_libraries(webserver_lib PUBLIC
     nlohmann_json::nlohmann_json
     color_output
     pthread
+    ZLIB::ZLIB
+    OpenSSL::SSL
+    OpenSSL::Crypto
 )
 
 target_link_libraries(webserver PRIVATE
     webserver_lib
+    ZLIB::ZLIB
 )
 
 # 在Debug模式下添加调试信息

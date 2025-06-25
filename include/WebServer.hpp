@@ -5,6 +5,8 @@
 #include <map>
 #include <functional>
 #include <memory>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 #include "ConnectionManager.hpp"
 #include "Router.hpp"
 #include "Config.hpp"
@@ -55,11 +57,23 @@ private:
      */
     void handleConnection(int clientSocket);
 
+    /**
+     * @brief 初始化SSL上下文
+     * @return 初始化成功返回true，否则返回false
+     */
+    bool initSSLContext();
+
+    /**
+     * @brief 清理SSL资源
+     */
+    void cleanupSSL();
+
     int port_;                   // 服务器端口
     bool running_;               // 服务器运行状态
     std::unique_ptr<ConnectionManager> connectionManager_;  // 连接管理器
     std::unique_ptr<Router> router_;                       // 路由器
     Config config_;              // 服务器配置
+    SSL_CTX* sslContext_;        // SSL上下文
 };
 
 } // namespace webserver
