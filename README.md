@@ -13,16 +13,39 @@
 - 内置性能基准测试
 - 全面的单元测试覆盖
 
+# 项目文档
+
+## 目录
+- [快速开始](#快速开始)
+- [构建说明](BUILD.md)
+- [部署指南](DEPLOY.md)
+- [开发指南](DEVELOPMENT.md)
+
 ## 快速开始
 
 ```bash
 # 使用构建脚本（推荐）
-./build.sh
+./build_and_test.sh
 
-# 手动构建
+# 手动构建 (使用Ninja - 推荐)
+mkdir build && cd build
+cmake -G Ninja .. && ninja
+
+# 手动构建 (使用Make - 备选)
 mkdir build && cd build
 cmake .. && make
 ```
+
+## 容器化部署
+```bash
+# 构建Docker镜像
+docker build -t webserver .
+
+# 运行容器
+docker run -d -p 8080:8080 --name webserver webserver
+```
+
+> 更多部署选项请参考[部署指南](DEPLOY.md)
 
 ## 文档
 

@@ -9,6 +9,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Dependencies.cmake)
 enable_testing()
 
 # 添加子目录
+add_subdirectory(modules/ColorOutput)
 add_subdirectory(include)
 add_subdirectory(src)
 

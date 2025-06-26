@@ -19,6 +19,7 @@ target_include_directories(webserver_benchmark
     PRIVATE 
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/modules/ColorOutput/include
 )
 
 # 在Linux上链接pthread

@@ -1,0 +1,21 @@
+# 忽略构建目录
+build/
+build_old/
+
+# 忽略版本控制
+.git/
+.gitignore
+
+# 忽略IDE文件
+.vscode/
+.idea/
+
+# 忽略测试和文档
+Testing/
+docs/
+test/
+
+# 忽略临时文件
+*.swp
+*.swo
+*~

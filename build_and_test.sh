@@ -98,16 +98,34 @@ fi
 mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
 
+# 检查Ninja是否可用
+if command -v ninja >/dev/null 2>&1; then
+    GENERATOR="Ninja"
+    echo "检测到Ninja可用，将使用Ninja构建系统"
+    CMAKE_ARGS+=("-G" "Ninja")
+else
+    GENERATOR="Unix Makefiles"
+    echo "警告: Ninja未安装，将使用默认Make构建系统"
+fi
+
 # 配置项目
-echo "配置项目 (构建类型: $BUILD_TYPE)"
+echo "配置项目 (构建类型: $BUILD_TYPE, 生成器: $GENERATOR)"
 cmake "${CMAKE_ARGS[@]}" ..
 
 # 构建项目
 echo "构建项目 (使用 $JOBS 个作业)"
-if [ "$VERBOSE" = true ]; then
-    cmake --build . --config "$BUILD_TYPE" --verbose -j "$JOBS"
+if [ "$GENERATOR" = "Ninja" ]; then
+    if [ "$VERBOSE" = true ]; then
+        ninja -v -j "$JOBS"
+    else
+        ninja -j "$JOBS"
+    fi
 else
-    cmake --build . --config "$BUILD_TYPE" -j "$JOBS"
+    if [ "$VERBOSE" = true ]; then
+        cmake --build . --config "$BUILD_TYPE" --verbose -j "$JOBS"
+    else
+        cmake --build . --config "$BUILD_TYPE" -j "$JOBS"
+    fi
 fi
 
 echo "构建完成!"

@@ -40,6 +40,7 @@ set_target_properties(webserver_lib PROPERTIES
 target_include_directories(webserver_lib PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/modules/ColorOutput/include
 )
 
 # 设置可执行文件的包含目录
@@ -51,7 +52,7 @@ target_include_directories(webserver PRIVATE
 # 链接依赖库
 target_link_libraries(webserver_lib PUBLIC
     nlohmann_json::nlohmann_json
-    color_output
+    ColorOutput
     pthread
     ZLIB::ZLIB
     OpenSSL::SSL

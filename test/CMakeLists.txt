@@ -19,12 +19,13 @@ target_link_libraries(webserver_tests PRIVATE
     webserver_lib
     gtest_main 
     pthread
-    color_output
+    ColorOutput
 )
 
 target_include_directories(webserver_tests PRIVATE 
     ${CMAKE_SOURCE_DIR}/src 
     ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/modules/ColorOutput/include
     ${CMAKE_CURRENT_SOURCE_DIR}/fixtures
 )
 
@@ -37,12 +38,13 @@ add_executable(color_output_test
 )
 
 target_link_libraries(color_output_test PRIVATE 
-    color_output
+    ColorOutput
     gtest_main
 )
 
 target_include_directories(color_output_test PRIVATE 
     ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/modules/ColorOutput/include
 )
 
 # 添加到CTest
