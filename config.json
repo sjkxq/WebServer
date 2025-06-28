@@ -3,6 +3,7 @@
         "port": 8080,
         "thread_pool_size": 4,
         "timeout": 30,
+        "max_connections_per_ip": 50,
         "max_connections_per_client": 10,
         "max_requests_per_connection": 100,
         "keep_alive_timeout": 5,

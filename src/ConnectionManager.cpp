@@ -119,12 +119,50 @@ void ConnectionManager::updateActivity(int socket) {
     if (it != connections_.end()) {
         it->second.lastActivity = std::chrono::steady_clock::now();
         it->second.requestCount++;
+        totalRequests_++;
         
         // 检查请求数量限制
         if (it->second.requestCount >= maxRequestsPerConnection_) {
             it->second.keepAlive = false;
         }
     }
+}
+
+size_t ConnectionManager::getActiveConnectionCount() const {
+    std::lock_guard<std::mutex> lock(connectionsMutex_);
+    size_t activeCount = 0;
+    auto now = std::chrono::steady_clock::now();
+    
+    for (const auto& pair : connections_) {
+        const auto& connInfo = pair.second;
+        auto duration = std::chrono::duration_cast<std::chrono::seconds>(
+            now - connInfo.lastActivity).count();
+            
+        if (duration < 5) { // 5秒内活跃的连接
+            activeCount++;
+        }
+    }
+    return activeCount;
+}
+
+uint64_t ConnectionManager::getTotalRequestCount() const {
+    return totalRequests_.load();
+}
+
+std::string ConnectionManager::getConnectionStats() const {
+    std::lock_guard<std::mutex> lock(connectionsMutex_);
+    
+    std::stringstream ss;
+    ss << "{";
+    ss << "\"total_connections\": " << connections_.size() << ",";
+    ss << "\"active_connections\": " << getActiveConnectionCount() << ",";
+    ss << "\"total_requests\": " << totalRequests_.load() << ",";
+    ss << "\"unique_ips\": " << ipConnections_.size() << ",";
+    ss << "\"max_connections_per_ip\": " << maxConnectionsPerIP_ << ",";
+    ss << "\"max_connections_per_client\": " << maxConnectionsPerClient_;
+    ss << "}";
+    
+    return ss.str();
 }
 
 void ConnectionManager::setKeepAlive(int socket, bool keepAlive) {
@@ -141,6 +179,7 @@ size_t ConnectionManager::getConnectionCount() const {
 }
 
 void ConnectionManager::cleanupTask() {
+    int cleanupCount = 0;
     while (running_) {
         std::unique_lock<std::mutex> lock(connectionsMutex_);
         
@@ -177,6 +216,11 @@ void ConnectionManager::cleanupTask() {
             } else {
                 ++it;
             }
+        }
+
+        // 每10次清理（约10分钟）输出一次统计信息
+        if (++cleanupCount % 10 == 0) {
+            LOG_INFO("Connection statistics: " + getConnectionStats());
         }
     }
 }

@@ -79,8 +79,27 @@ public:
      * @return 连接数量
      */
     size_t getConnectionCount() const;
+    
+    /**
+     * @brief 获取活跃连接数量
+     * @return 活跃连接数量
+     */
+    size_t getActiveConnectionCount() const;
+    
+    /**
+     * @brief 获取总请求数量
+     * @return 总请求数量
+     */
+    uint64_t getTotalRequestCount() const;
+    
+    /**
+     * @brief 获取连接统计信息
+     * @return 包含统计信息的JSON字符串
+     */
+    std::string getConnectionStats() const;
 
 private:
+    std::atomic<uint64_t> totalRequests_{0};      // 总请求计数
     /**
      * @brief 清理过期连接的线程函数
      */
