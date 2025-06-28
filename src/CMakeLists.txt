@@ -7,6 +7,7 @@ set(WEBSERVER_SOURCES
     ConnectionManager.cpp
     http/HttpRequest.cpp
     http/HttpResponse.cpp
+    http/HealthCheckController.cpp
     HttpParser.cpp
     HttpStatus.cpp
     MemoryPool.cpp
@@ -29,6 +30,7 @@ add_library(webserver_lib STATIC
     ConnectionManager.cpp
     http/HttpRequest.cpp
     http/HttpResponse.cpp
+    http/HealthCheckController.cpp
     HttpParser.cpp
     HttpStatus.cpp
     MemoryPool.cpp

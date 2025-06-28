@@ -1,9 +1,9 @@
 #ifndef WEBSERVER_WEBSERVER_HPP
 #define WEBSERVER_WEBSERVER_HPP
 
-#include "Config.h"
-#include "ConnectionManager.h"
-#include "Router.h"
+#include "Config.hpp"
+#include "ConnectionManager.hpp"
+#include "Router.hpp"
 #include <memory>
 #include <openssl/ssl.h>
 

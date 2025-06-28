@@ -67,4 +67,18 @@ const std::map<std::string, std::string>& HttpResponse::getHeaders() const {
     return headers_;
 }
 
+std::string HttpResponse::getBody() const {
+    return content_;
+}
+
+HttpResponse HttpResponse::create(int statusCode, 
+                                const std::string& content,
+                                const std::map<std::string, std::string>& headers) {
+    HttpResponse response(static_cast<HttpStatus>(statusCode), content);
+    for (const auto& header : headers) {
+        response.setHeader(header.first, header.second);
+    }
+    return response;
+}
+
 } // namespace webserver

@@ -52,6 +52,23 @@ public:
     HttpStatus getStatusCode() const;
     const std::string& getContent() const;
     const std::map<std::string, std::string>& getHeaders() const;
+    
+    /**
+     * @brief 获取响应体内容
+     * @return 响应体字符串
+     */
+    std::string getBody() const;
+
+    /**
+     * @brief 创建HttpResponse对象
+     * @param statusCode HTTP状态码
+     * @param content 响应体内容
+     * @param headers 响应头
+     * @return 构造好的HttpResponse对象
+     */
+    static HttpResponse create(int statusCode, 
+                             const std::string& content,
+                             const std::map<std::string, std::string>& headers);
 
 private:
     HttpStatus statusCode_;

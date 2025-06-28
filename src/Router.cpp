@@ -1,5 +1,8 @@
 #include "Router.hpp"
 #include "Logger.hpp"
+#include "http/HealthCheckController.h"
+#include "http/HttpRequest.h"
+#include "http/HttpResponse.h"
 
 namespace webserver {
 
@@ -7,6 +10,16 @@ Router::Router() {
     // 添加默认路由
     addRoute("/", [](const std::map<std::string, std::string>& headers, const std::string& body) {
         return "<html><body><h1>Welcome to C++ WebServer</h1></body></html>";
+    });
+    
+    // 添加健康检查路由
+    addRoute("/health", [](const std::map<std::string, std::string>& headers, const std::string& body) {
+        HttpRequest request;
+        request.setHeaders(headers);
+        request.setBody(body);
+        
+        auto response = HealthCheckController::checkHealth(request);
+        return response->getBody();
     });
 }
 

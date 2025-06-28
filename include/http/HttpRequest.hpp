@@ -33,6 +33,18 @@ public:
     const std::map<std::string, std::string>& getQueryParams() const;
 
     /**
+     * @brief 设置请求头
+     * @param headers 要设置的请求头
+     */
+    void setHeaders(const std::map<std::string, std::string>& headers);
+
+    /**
+     * @brief 设置请求体
+     * @param body 要设置的请求体
+     */
+    void setBody(const std::string& body);
+
+    /**
      * @brief 获取指定头部的值
      * @param name 头部名称
      * @return 头部值，如果不存在则返回空字符串

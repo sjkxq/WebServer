@@ -116,4 +116,12 @@ bool HttpRequest::checkIfMatch(const std::string& etag) const {
     return false;
 }
 
+void HttpRequest::setHeaders(const std::map<std::string, std::string>& headers) {
+    headers_ = headers;
+}
+
+void HttpRequest::setBody(const std::string& body) {
+    body_ = body;
+}
+
 } // namespace webserver
