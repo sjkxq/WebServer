@@ -46,6 +46,34 @@ public:
      */
     std::string getQueryParam(const std::string& name) const;
 
+    /**
+     * @brief 检查If-Modified-Since条件请求
+     * @param lastModified 资源的最后修改时间
+     * @return 如果满足条件返回true
+     */
+    bool checkIfModifiedSince(time_t lastModified) const;
+
+    /**
+     * @brief 检查If-Unmodified-Since条件请求
+     * @param lastModified 资源的最后修改时间
+     * @return 如果满足条件返回true
+     */
+    bool checkIfUnmodifiedSince(time_t lastModified) const;
+
+    /**
+     * @brief 检查If-None-Match条件请求
+     * @param etag 资源的ETag
+     * @return 如果满足条件返回true
+     */
+    bool checkIfNoneMatch(const std::string& etag) const;
+
+    /**
+     * @brief 检查If-Match条件请求
+     * @param etag 资源的ETag
+     * @return 如果满足条件返回true
+     */
+    bool checkIfMatch(const std::string& etag) const;
+
 private:
     std::string method_;
     std::string path_;

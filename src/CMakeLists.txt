@@ -13,12 +13,15 @@ set(WEBSERVER_SOURCES
     MultiLevelMemoryPool.cpp
     Router.cpp
     ThreadPool.cpp
+    utils/DateTimeUtils.cpp
 )
 
 # 创建主要的可执行文件
 add_executable(webserver ${WEBSERVER_SOURCES})
 
 # 创建源代码库（供测试和基准测试使用）
+find_package(OpenSSL REQUIRED)
+
 add_library(webserver_lib STATIC
     WebServer.cpp
     Logger.cpp
@@ -32,7 +35,15 @@ add_library(webserver_lib STATIC
     MultiLevelMemoryPool.cpp
     Router.cpp
     ThreadPool.cpp
+    utils/DateTimeUtils.cpp
+    ssl/SSLContext.cpp
+    ssl/SSLSocket.cpp
 )
+
+target_link_libraries(webserver_lib PRIVATE OpenSSL::SSL)
+
+target_include_directories(webserver_lib PRIVATE ${OPENSSL_INCLUDE_DIR})
+target_link_libraries(webserver_lib PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 
 # 设置库的属性
 set_target_properties(webserver_lib PROPERTIES
