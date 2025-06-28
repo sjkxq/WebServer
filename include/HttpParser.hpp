@@ -5,6 +5,8 @@
 #include <map>
 #include <tuple>
 #include "HttpStatus.hpp"
+#include "http/HttpRequest.hpp"
+#include "http/HttpResponse.hpp"
 
 namespace webserver {
 
@@ -62,6 +64,27 @@ public:
     static std::string buildChunkedResponse(HttpStatus statusCode, const std::string& content, 
                                           const std::map<std::string, std::string>& headers, 
                                           const std::string& contentType = "text/html");
+
+    /**
+     * @brief 解析HTTP请求并返回HttpRequest对象
+     * @param request HTTP请求字符串
+     * @return HttpRequest对象
+     */
+    static HttpRequest parseRequestToObject(const std::string& request);
+
+    /**
+     * @brief 从HttpResponse对象构建HTTP响应字符串
+     * @param response HttpResponse对象
+     * @return 完整的HTTP响应字符串
+     */
+    static std::string buildResponse(const HttpResponse& response);
+
+    /**
+     * @brief 从HttpResponse对象构建分块传输编码的HTTP响应字符串
+     * @param response HttpResponse对象
+     * @return 使用分块传输编码的HTTP响应字符串
+     */
+    static std::string buildChunkedResponse(const HttpResponse& response);
 };
 
 } // namespace webserver

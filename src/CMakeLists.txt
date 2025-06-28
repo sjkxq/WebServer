@@ -4,13 +4,15 @@ set(WEBSERVER_SOURCES
     WebServer.cpp
     Logger.cpp
     Config.cpp
-    ThreadPool.cpp
     ConnectionManager.cpp
-    HttpStatus.cpp
-    Router.cpp
+    http/HttpRequest.cpp
+    http/HttpResponse.cpp
     HttpParser.cpp
+    HttpStatus.cpp
     MemoryPool.cpp
     MultiLevelMemoryPool.cpp
+    Router.cpp
+    ThreadPool.cpp
 )
 
 # 创建主要的可执行文件
@@ -21,13 +23,15 @@ add_library(webserver_lib STATIC
     WebServer.cpp
     Logger.cpp
     Config.cpp
-    ThreadPool.cpp
     ConnectionManager.cpp
-    HttpStatus.cpp
-    Router.cpp
+    http/HttpRequest.cpp
+    http/HttpResponse.cpp
     HttpParser.cpp
+    HttpStatus.cpp
     MemoryPool.cpp
     MultiLevelMemoryPool.cpp
+    Router.cpp
+    ThreadPool.cpp
 )
 
 # 设置库的属性

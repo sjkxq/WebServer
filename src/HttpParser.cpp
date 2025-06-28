@@ -134,4 +134,41 @@ std::string HttpParser::buildChunkedResponse(HttpStatus statusCode, const std::s
     return response.str();
 }
 
+HttpRequest HttpParser::parseRequestToObject(const std::string& request) {
+    auto [path, headers, body] = parseRequest(request);
+    
+    // 解析方法
+    size_t methodEnd = request.find(' ');
+    std::string method = request.substr(0, methodEnd);
+    
+    // 解析查询参数
+    std::map<std::string, std::string> queryParams;
+    size_t queryStart = path.find('?');
+    if (queryStart != std::string::npos) {
+        std::string queryString = path.substr(queryStart + 1);
+        path = path.substr(0, queryStart);
+        
+        std::istringstream queryStream(queryString);
+        std::string pair;
+        while (std::getline(queryStream, pair, '&')) {
+            size_t equalPos = pair.find('=');
+            if (equalPos != std::string::npos) {
+                std::string key = pair.substr(0, equalPos);
+                std::string value = pair.substr(equalPos + 1);
+                queryParams[key] = value;
+            }
+        }
+    }
+    
+    return HttpRequest(method, path, headers, body, queryParams);
+}
+
+std::string HttpParser::buildResponse(const HttpResponse& response) {
+    return response.build();
+}
+
+std::string HttpParser::buildChunkedResponse(const HttpResponse& response) {
+    return response.buildChunked();
+}
+
 } // namespace webserver
