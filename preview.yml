@@ -3,7 +3,7 @@
 autoOpen: false # 打开应用时是否自动开启所有下方apps的预览
 apps: # 支持配置多个应用
   - run: ./build_and_test.sh
-    root: ./WebServer # 应用的启动目录
+    root: . # 应用的启动目录
     name: cloud-studio-app # 应用名称
     description: 我的Cloud Studio App。 # 应用描述
     autoOpen: false # 打开应用时是否自动开启预览（优先级高于根级 autoOpen）

@@ -45,6 +45,15 @@ std::tuple<std::string, std::map<std::string, std::string>, std::string> HttpPar
 }
 
 std::string HttpParser::buildResponse(HttpStatus statusCode, const std::string& content, const std::string& contentType) {
+    // 使用空的自定义头部调用重载版本
+    std::map<std::string, std::string> headers;
+    headers["Connection"] = "close";
+    return buildResponse(statusCode, content, headers, contentType);
+}
+
+std::string HttpParser::buildResponse(HttpStatus statusCode, const std::string& content, 
+                                     const std::map<std::string, std::string>& headers, 
+                                     const std::string& contentType) {
     std::ostringstream response;
     HttpStatusHandler& statusHandler = HttpStatusHandler::getInstance();
     
@@ -64,7 +73,12 @@ std::string HttpParser::buildResponse(HttpStatus statusCode, const std::string& 
     response << "HTTP/1.1 " << static_cast<int>(statusCode) << " " << statusMessage << "\r\n";
     response << "Content-Type: " << contentType << "\r\n";
     response << "Content-Length: " << content.size() << "\r\n";
-    response << "Connection: close\r\n";
+    
+    // 添加自定义头部
+    for (const auto& header : headers) {
+        response << header.first << ": " << header.second << "\r\n";
+    }
+    
     response << "\r\n";
     response << content;
     
@@ -72,6 +86,15 @@ std::string HttpParser::buildResponse(HttpStatus statusCode, const std::string& 
 }
 
 std::string HttpParser::buildChunkedResponse(HttpStatus statusCode, const std::string& content, const std::string& contentType) {
+    // 使用空的自定义头部调用重载版本
+    std::map<std::string, std::string> headers;
+    headers["Connection"] = "close";
+    return buildChunkedResponse(statusCode, content, headers, contentType);
+}
+
+std::string HttpParser::buildChunkedResponse(HttpStatus statusCode, const std::string& content, 
+                                           const std::map<std::string, std::string>& headers, 
+                                           const std::string& contentType) {
     std::ostringstream response;
     HttpStatusHandler& statusHandler = HttpStatusHandler::getInstance();
     
@@ -91,7 +114,12 @@ std::string HttpParser::buildChunkedResponse(HttpStatus statusCode, const std::s
     response << "HTTP/1.1 " << static_cast<int>(statusCode) << " " << statusMessage << "\r\n";
     response << "Content-Type: " << contentType << "\r\n";
     response << "Transfer-Encoding: chunked\r\n";
-    response << "Connection: close\r\n";
+    
+    // 添加自定义头部
+    for (const auto& header : headers) {
+        response << header.first << ": " << header.second << "\r\n";
+    }
+    
     response << "\r\n";
     
     // 构建分块内容

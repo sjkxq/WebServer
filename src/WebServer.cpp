@@ -3,6 +3,7 @@
 #include "../include/HttpParser.hpp"
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <unistd.h>
 #include <cstring>
 #include <sstream>
@@ -125,8 +126,12 @@ bool WebServer::start() {
             continue;
         }
 
+        // 获取客户端IP地址
+        char clientIP[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &(clientAddr.sin_addr), clientIP, INET_ADDRSTRLEN);
+        
         // 处理连接
-        connectionManager_->addConnection(clientSocket, [this, clientSocket]() {
+        connectionManager_->addConnection(clientSocket, std::string(clientIP), [this, clientSocket]() {
             this->handleConnection(clientSocket);
         });
     }
@@ -160,54 +165,114 @@ void WebServer::handleConnection(int clientSocket) {
         }
     }
 
-    // 读取请求
-    std::vector<char> buffer(4096);
-    ssize_t bytesRead = ssl ? SSL_read(ssl, buffer.data(), buffer.size() - 1)
-                           : recv(clientSocket, buffer.data(), buffer.size() - 1, 0);
+    // 初始化连接状态
+    bool keepAlive = false;
+    int maxRequests = config_.get<int>("server.max_requests_per_connection", 100);
+    int requestCount = 0;
     
-    if (bytesRead <= 0) {
-        if (ssl) SSL_free(ssl);
-        close(clientSocket);
-        return;
-    }
-    
-    buffer[bytesRead] = '\0';
-    std::string request(buffer.data());
-    
-    // 使用HttpParser解析请求
-    std::string path;
-    std::map<std::string, std::string> headers;
-    std::string body;
-    std::tie(path, headers, body) = HttpParser::parseRequest(request);
-    LOG_INFO("Received request for path: " + path);
-    
-    // 处理请求
-    bool found;
-    std::string content;
-    std::tie(found, content) = router_->handleRequest(path, headers, body);
-    
-    // 使用HttpParser构建响应
-    std::string response;
-    if (found) {
-        // 检查是否需要分块传输
-        bool useChunked = headers.count("Transfer-Encoding") > 0 && 
-                         headers["Transfer-Encoding"] == "chunked";
+    // 更新连接活动时间
+    connectionManager_->updateActivity(clientSocket);
+
+    // 处理连接上的多个请求
+    while (requestCount < maxRequests) {
+        // 设置非阻塞模式以支持超时
+        struct timeval tv;
+        tv.tv_sec = config_.get<int>("server.timeout", 60);
+        tv.tv_usec = 0;
         
-        response = useChunked ? 
-            HttpParser::buildChunkedResponse(HttpStatus::OK, content) :
-            HttpParser::buildResponse(HttpStatus::OK, content);
-    } else {
-        response = HttpParser::buildResponse(HttpStatus::NOT_FOUND, 
-            "<html><body><h1>404 Not Found</h1></body></html>");
+        fd_set readfds;
+        FD_ZERO(&readfds);
+        FD_SET(clientSocket, &readfds);
+        
+        // 等待数据可读或超时
+        int selectResult = select(clientSocket + 1, &readfds, NULL, NULL, &tv);
+        if (selectResult <= 0) {
+            // 超时或错误
+            break;
+        }
+        
+        // 读取请求
+        std::vector<char> buffer(4096);
+        ssize_t bytesRead = ssl ? SSL_read(ssl, buffer.data(), buffer.size() - 1)
+                               : recv(clientSocket, buffer.data(), buffer.size() - 1, 0);
+        
+        if (bytesRead <= 0) {
+            break;
+        }
+        
+        buffer[bytesRead] = '\0';
+        std::string request(buffer.data());
+        
+        // 更新连接活动时间
+        connectionManager_->updateActivity(clientSocket);
+        requestCount++;
+        
+        // 使用HttpParser解析请求
+        std::string path;
+        std::map<std::string, std::string> headers;
+        std::string body;
+        std::tie(path, headers, body) = HttpParser::parseRequest(request);
+        LOG_INFO("Received request for path: " + path);
+        
+        // 检查Connection头，确定是否保持连接
+        keepAlive = false;
+        if (headers.count("Connection") > 0) {
+            keepAlive = (headers["Connection"] == "keep-alive");
+        }
+        
+        // 设置连接的保活状态
+        connectionManager_->setKeepAlive(clientSocket, keepAlive);
+        
+        // 处理请求
+        bool found;
+        std::string content;
+        std::tie(found, content) = router_->handleRequest(path, headers, body);
+        
+        // 使用HttpParser构建响应
+        std::string response;
+        std::map<std::string, std::string> responseHeaders;
+        
+        // 添加Connection头
+        responseHeaders["Connection"] = keepAlive ? "keep-alive" : "close";
+        
+        // 如果是保活连接，添加Keep-Alive头
+        if (keepAlive) {
+            int timeout = config_.get<int>("server.keep_alive_timeout", 5);
+            int max = maxRequests - requestCount;
+            responseHeaders["Keep-Alive"] = "timeout=" + std::to_string(timeout) + 
+                                          ", max=" + std::to_string(max);
+        }
+        
+        if (found) {
+            // 检查是否需要分块传输
+            bool useChunked = headers.count("Transfer-Encoding") > 0 && 
+                             headers["Transfer-Encoding"] == "chunked";
+            
+            response = useChunked ? 
+                HttpParser::buildChunkedResponse(HttpStatus::OK, content, responseHeaders) :
+                HttpParser::buildResponse(HttpStatus::OK, content, responseHeaders);
+        } else {
+            response = HttpParser::buildResponse(HttpStatus::NOT_FOUND, 
+                "<html><body><h1>404 Not Found</h1></body></html>", responseHeaders);
+        }
+        
+        // 发送响应
+        if (ssl) {
+            SSL_write(ssl, response.c_str(), response.size());
+        } else {
+            send(clientSocket, response.c_str(), response.size(), 0);
+        }
+        
+        // 如果不保持连接，退出循环
+        if (!keepAlive) {
+            break;
+        }
     }
     
-    // 发送响应
+    // 关闭连接
     if (ssl) {
-        SSL_write(ssl, response.c_str(), response.size());
         SSL_shutdown(ssl);
         SSL_free(ssl);
-    } else {
-        send(clientSocket, response.c_str(), response.size(), 0);
     }
     close(clientSocket);
 }
