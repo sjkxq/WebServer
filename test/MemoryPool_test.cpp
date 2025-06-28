@@ -53,7 +53,7 @@ TEST(MemoryPoolTest, ThreadSafety) {
             for (int j = 0; j < kAllocations; ++j) {
                 int* ptr = pool.allocate();
                 *ptr = i * kAllocations + j;
-                pointers[i * kAllocations + j] = ptr;
+                pointers[static_cast<size_t>(i * kAllocations + j)] = ptr;
             }
         });
     }

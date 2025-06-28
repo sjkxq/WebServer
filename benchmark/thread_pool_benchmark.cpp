@@ -14,7 +14,7 @@ static LoggerConfig loggerConfig;
 
 // 测试线程池任务提交性能
 static void BM_ThreadPoolSubmit(benchmark::State& state) {
-    ThreadPool pool(state.range(0));
+    ThreadPool pool(static_cast<size_t>(state.range(0)));
     for (auto _ : state) {
         pool.enqueue([](){});
     }
@@ -26,7 +26,7 @@ BENCHMARK(BM_ThreadPoolSubmit)
 
 // 测试线程池任务执行吞吐量
 static void BM_ThreadPoolThroughput(benchmark::State& state) {
-    ThreadPool pool(state.range(0));
+    ThreadPool pool(static_cast<size_t>(state.range(0)));
     std::atomic<int> counter{0};
     for (auto _ : state) {
         for (int i = 0; i < state.range(1); ++i) {

@@ -33,19 +33,20 @@ void* MultiLevelMemoryPool::allocate(size_t size) {
     }
     
     // Check if we have free slots
-    if (!pools_[level].freeSlots.empty()) {
-        char* mem = pools_[level].freeSlots.back();
-        pools_[level].freeSlots.pop_back();
+    const auto level_idx = static_cast<size_t>(level);
+    if (!pools_[level_idx].freeSlots.empty()) {
+        char* mem = pools_[level_idx].freeSlots.back();
+        pools_[level_idx].freeSlots.pop_back();
         return mem + sizeof(size_t);  // Skip the level info
     }
     
     // Allocate a new block
-    size_t blockSize = pools_[level].blockSize;
+    size_t blockSize = pools_[level_idx].blockSize;
     char* block = new char[blockSize + sizeof(size_t)];  // Add space for level info
-    pools_[level].blocks.push_back(block);
+    pools_[level_idx].blocks.push_back(block);
     
     // Store the level information
-    *reinterpret_cast<size_t*>(block) = level;
+    *reinterpret_cast<size_t*>(block) = level_idx;
     
     // Return pointer to the usable memory
     return block + sizeof(size_t);

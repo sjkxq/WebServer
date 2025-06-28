@@ -29,6 +29,21 @@ if(BUILD_BENCHMARKS)
     )
     set(BENCHMARK_ENABLE_TESTING OFF)
     FetchContent_MakeAvailable(benchmark)
+
+    # 为benchmark目标禁用特定严格警告
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+      target_compile_options(benchmark PRIVATE 
+        -Wno-old-style-cast
+        -Wno-conversion
+        -Wno-sign-conversion
+      )
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+      target_compile_options(benchmark PRIVATE 
+        /wd4244  # 转换警告
+        /wd4267  # size_t到更小类型的转换
+        /wd4800  # 强制转换为bool
+      )
+    endif()
 endif()
 
 # 添加JSON库

@@ -80,11 +80,11 @@ TEST(MultiLevelMemoryPoolTest, ConcurrentAllocation) {
                 int index = i * 100 + j;
                 // Allocate memory of different sizes
                 size_t size = 8 << (j % 8);  // Sizes from 8 to 1024
-                pointers[index] = pool.allocate(size);
-                ASSERT_NE(pointers[index], nullptr);
+                pointers[static_cast<size_t>(index)] = pool.allocate(size);
+                ASSERT_NE(pointers[static_cast<size_t>(index)], nullptr);
                 
                 // Write to memory to ensure it's usable
-                char* mem = static_cast<char*>(pointers[index]);
+                char* mem = static_cast<char*>(pointers[static_cast<size_t>(index)]);
                 for (size_t k = 0; k < size; ++k) {
                     mem[k] = static_cast<char>(i);
                 }
@@ -107,13 +107,13 @@ TEST(MultiLevelMemoryPoolTest, ConcurrentAllocation) {
                 size_t size = 8 << (j % 8);
                 
                 // Verify memory contents
-                char* mem = static_cast<char*>(pointers[index]);
+                char* mem = static_cast<char*>(pointers[static_cast<size_t>(index)]);
                 for (size_t k = 0; k < size; ++k) {
                     EXPECT_EQ(mem[k], static_cast<char>(i));
                 }
                 
                 // Deallocate memory
-                pool.deallocate(pointers[index]);
+                pool.deallocate(pointers[static_cast<size_t>(index)]);
             }
         });
     }

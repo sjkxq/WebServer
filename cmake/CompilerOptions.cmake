@@ -17,6 +17,13 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         -Wextra
         -Wpedantic
         -Werror
+        -Wconversion
+        -Wshadow
+        -Wdouble-promotion
+        -Wsign-conversion
+        -Wnull-dereference
+        -Wold-style-cast
+        -Wcast-align
         -Wno-unused-parameter
         -Wno-missing-field-initializers
     )
@@ -37,6 +44,16 @@ if(MSVC)
     add_compile_options(
         /W4
         /WX
+        /w44265  # 有符号/无符号不匹配
+        /w44289  # 常量条件表达式
+        /w44296  # 运算符'&&'的求值顺序
+        /w45263  # 成员函数不匹配
+        /w14545  # 表达式在算术转换前求值
+        /w14546  # 表达式在算术转换后求值
+        /w14547  # 声明隐藏了全局声明
+        /w14549  # 声明隐藏了类成员
+        /w14555  # 表达式没有副作用
+        /w14619  # 枚举值转换
         /wd4100  # 未引用的形参
         /wd4505  # 未引用的函数
     )

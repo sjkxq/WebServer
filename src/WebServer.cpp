@@ -95,9 +95,8 @@ bool WebServer::start() {
     struct sockaddr_in serverAddr;
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_addr.s_addr = INADDR_ANY;
-    serverAddr.sin_port = htons(port_);
-
-    if (bind(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == -1) {
+    serverAddr.sin_port = htons(static_cast<uint16_t>(port_));
+    if (bind(serverSocket, reinterpret_cast<struct sockaddr*>(&serverAddr), sizeof(serverAddr)) == -1) {
         LOG_ERROR("Failed to bind socket");
         close(serverSocket);
         return false;
@@ -117,7 +116,7 @@ bool WebServer::start() {
     while (running_) {
         struct sockaddr_in clientAddr;
         socklen_t clientAddrLen = sizeof(clientAddr);
-        int clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrLen);
+        int clientSocket = accept(serverSocket, reinterpret_cast<struct sockaddr*>(&clientAddr), &clientAddrLen);
         
         if (clientSocket == -1) {
             if (running_) {
@@ -193,14 +192,13 @@ void WebServer::handleConnection(int clientSocket) {
         
         // 读取请求
         std::vector<char> buffer(4096);
-        ssize_t bytesRead = ssl ? SSL_read(ssl, buffer.data(), buffer.size() - 1)
-                               : recv(clientSocket, buffer.data(), buffer.size() - 1, 0);
-        
+        const auto readSize = static_cast<int>(std::min(buffer.size() - 1, static_cast<size_t>(INT_MAX)));
+        ssize_t bytesRead = ssl ? SSL_read(ssl, buffer.data(), readSize)
+                                : recv(clientSocket, buffer.data(), static_cast<size_t>(readSize), 0);
         if (bytesRead <= 0) {
             break;
         }
-        
-        buffer[bytesRead] = '\0';
+        buffer[static_cast<size_t>(bytesRead)] = '\0';
         std::string request(buffer.data());
         
         // 更新连接活动时间
@@ -258,9 +256,10 @@ void WebServer::handleConnection(int clientSocket) {
         
         // 发送响应
         if (ssl) {
-            SSL_write(ssl, response.c_str(), response.size());
+            const auto writeSize = static_cast<int>(std::min(response.size(), static_cast<size_t>(INT_MAX)));
+            SSL_write(ssl, response.c_str(), writeSize);
         } else {
-            send(clientSocket, response.c_str(), response.size(), 0);
+            send(clientSocket, response.c_str(), static_cast<size_t>(response.size()), 0);
         }
         
         // 如果不保持连接，退出循环

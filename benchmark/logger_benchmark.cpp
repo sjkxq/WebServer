@@ -33,7 +33,7 @@ BENCHMARK(BM_LoggerPerformance)
 static void BM_MultiThreadLogger(benchmark::State& state) {
     webserver::Logger::getInstance().setConsoleOutput(false);
     webserver::Logger::getInstance().setLogLevel(webserver::Logger::Level::INFO);
-    const int thread_count = state.range(0);
+    const auto thread_count = static_cast<int>(state.range(0));
     const int logs_per_thread = 1000;
     
     for (auto _ : state) {
