@@ -209,7 +209,7 @@ void WebServer::handleConnection(int clientSocket) {
         std::string path;
         std::map<std::string, std::string> headers;
         std::string body;
-        std::tie(path, headers, body) = HttpParser::parseRequest(request);
+        std::tie(std::ignore, path, headers, body) = HttpParser::parseRequest(request);
         LOG_INFO("Received request for path: " + path);
         
         // 检查Connection头，确定是否保持连接

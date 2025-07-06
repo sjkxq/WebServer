@@ -21,7 +21,7 @@ public:
      * @param request HTTP请求字符串
      * @return 包含路径、头部和正文的元组
      */
-    static std::tuple<std::string, std::map<std::string, std::string>, std::string> parseRequest(const std::string& request);
+    static std::tuple<std::string, std::string, std::map<std::string, std::string>, std::string> parseRequest(const std::string& request);
     
     /**
      * @brief 构建HTTP响应
