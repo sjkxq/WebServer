@@ -263,11 +263,7 @@ generate_coverage() {
     # 构建CMake命令
     local CMAKE_CMD="cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_COVERAGE=true"
     
-    if [[ "$ATOMIC_PROFILE" == true ]]; then
-        CMAKE_CMD="$CMAKE_CMD -DCMAKE_CXX_FLAGS=\"--coverage -fprofile-update=atomic\" -DCMAKE_C_FLAGS=\"--coverage -fprofile-update=atomic\""
-    else
-        CMAKE_CMD="$CMAKE_CMD -DCMAKE_CXX_FLAGS=\"--coverage\" -DCMAKE_C_FLAGS=\"--coverage\""
-    fi
+    CMAKE_CMD="$CMAKE_CMD -DCMAKE_CXX_FLAGS=\"--coverage -fprofile-update=atomic -fprofile-arcs -ftest-coverage\" -DCMAKE_C_FLAGS=\"--coverage -fprofile-update=atomic -fprofile-arcs -ftest-coverage\""
     
     CMAKE_CMD="$CMAKE_CMD \"$PROJECT_DIR\""
     
@@ -303,13 +299,13 @@ generate_coverage() {
     # 正确配置geninfo参数
     local GENINFO_FLAGS="--rc geninfo_unexecuted_blocks=1"
     if [[ "$ATOMIC_PROFILE" == true ]]; then
-        GENINFO_FLAGS="$GENINFO_FLAGS --rc geninfo_gcov_tool='gcov --profile-update=atomic'"
+        GENINFO_FLAGS="$GENINFO_FLAGS"
     fi
     
     # 正确导出环境变量
     export LC_GCOV_ARGS="geninfo_unexecuted_blocks=1"
     if [[ "$ATOMIC_PROFILE" == true ]]; then
-        export LC_GCOV_ARGS="geninfo_unexecuted_blocks=1 --rc geninfo_gcov_tool='gcov --profile-update=atomic'"
+        export LC_GCOV_ARGS="geninfo_unexecuted_blocks=1"
     fi
     
     # 尝试捕获覆盖率数据
@@ -335,7 +331,6 @@ generate_coverage() {
          '/usr/include/*' \
          '*/build/_deps/*' \
          '*/test/*' \
-         '*/nlohmann/*' \
          --output-file coverage_filtered.info $REMOVE_FLAGS; then
         echo "警告: 过滤覆盖率数据时出现问题，尝试继续..."
     fi
@@ -360,7 +355,7 @@ generate_coverage() {
     # 生成XML报告
     if [[ "$GENERATE_XML" == true ]]; then
         echo "生成XML格式覆盖率报告..."
-        if lcov --list coverage_filtered.info --rc lcov_branch_coverage=1 > "$OUTPUT_DIR/coverage.xml"; then
+        if lcov --list coverage_filtered.info --rc branch_coverage=1 > "$OUTPUT_DIR/coverage.xml"; then
             echo "XML格式覆盖率报告已生成到: $OUTPUT_DIR/coverage.xml"
         else
             echo "警告: XML报告生成过程中出现问题"
