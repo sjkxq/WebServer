@@ -1,7 +1,12 @@
 #include <gtest/gtest.h>
 #include <fstream>
+#include <thread>
+#include <chrono>
 #include "WebServer.hpp"
+#include "http/HttpRequest.hpp"
+#include "http/HttpResponse.hpp"
 #include "Config.hpp"
+#include "Logger.hpp"
 
 class WebServerTest : public ::testing::Test {
 protected:

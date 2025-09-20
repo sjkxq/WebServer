@@ -17,6 +17,34 @@ set(WEBSERVER_SOURCES
     utils/DateTimeUtils.cpp
 )
 
+# 定义源文件
+set(SOURCES
+    WebServer.cpp
+    HttpParser.cpp
+    ConnectionManager.cpp
+    ThreadPool.cpp
+    Logger.cpp
+    Config.cpp
+    Router.cpp
+    MemoryPool.cpp
+    MultiLevelMemoryPool.cpp
+    TokenBucket.cpp
+    HttpStatus.cpp
+    CompressionUtil.cpp
+    http/HttpRequest.cpp
+    http/HttpResponse.cpp
+    http/HttpProcessor.cpp
+    http/HttpServer.cpp
+    http/PipelinedConnectionHandler.cpp
+    http/ContentNegotiator.cpp
+    http/CompressionPolicy.cpp
+    http/HttpCompressionMiddleware.cpp
+    http/HealthCheckController.cpp
+    ssl/SSLContext.cpp
+    ssl/SSLSocket.cpp
+    utils/DateTimeUtils.cpp
+)
+
 # 创建主要的可执行文件
 add_executable(webserver ${WEBSERVER_SOURCES})
 
