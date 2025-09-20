@@ -30,18 +30,44 @@ show_help() {
     echo ""
 }
 
+# 加载其他脚本模块
+load_modules() {
+    if [[ -f "$SCRIPT_DIR/scripts/build.sh" ]]; then
+        source "$SCRIPT_DIR/scripts/build.sh"
+    fi
+    
+    if [[ -f "$SCRIPT_DIR/scripts/test.sh" ]]; then
+        source "$SCRIPT_DIR/scripts/test.sh"
+    fi
+    
+    if [[ -f "$SCRIPT_DIR/scripts/clean.sh" ]]; then
+        source "$SCRIPT_DIR/scripts/clean.sh"
+    fi
+    
+    if [[ -f "$SCRIPT_DIR/scripts/benchmark.sh" ]]; then
+        source "$SCRIPT_DIR/scripts/benchmark.sh"
+    fi
+    
+    if [[ -f "$SCRIPT_DIR/scripts/install.sh" ]]; then
+        source "$SCRIPT_DIR/scripts/install.sh"
+    fi
+}
+
 # 初始化脚本权限
 init_scripts() {
     echo "为所有脚本授予执行权限..."
     
     # 为所有脚本文件授予执行权限
-    chmod +x "$SCRIPT_DIR"/scripts/*.sh 2>/dev/null || echo "警告: 无法为某些脚本文件授予权限"
+    chmod +x "$SCRIPT_DIR"/*.sh 2>/dev/null || echo "警告: 无法为某些脚本文件授予权限"
     
     echo "脚本权限初始化完成!"
 }
 
 # 主函数
 main() {
+    # 加载模块
+    load_modules
+    
     # 解析命令行参数
     case "$1" in
         init)
@@ -50,23 +76,23 @@ main() {
             ;;
         build)
             shift
-            "$SCRIPT_DIR/scripts/build.sh" "$@"
+            build_project "$@"
             ;;
         test)
             shift
-            "$SCRIPT_DIR/scripts/test.sh" "$@"
+            run_tests "$@"
             ;;
         clean)
             shift
-            "$SCRIPT_DIR/scripts/clean.sh" "$@"
+            clean_build "$@"
             ;;
         benchmark)
             shift
-            "$SCRIPT_DIR/scripts/benchmark.sh" "$@"
+            run_benchmark "$@"
             ;;
         install)
             shift
-            "$SCRIPT_DIR/scripts/install.sh" "$@"
+            install_project "$@"
             ;;
         help|--help|-h)
             show_help
