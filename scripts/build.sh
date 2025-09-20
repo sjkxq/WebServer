@@ -3,7 +3,7 @@
 # WebServer项目构建脚本
 
 # 默认参数
-BUILD_TYPE="Debug"
+BUILD_TYPE="All"  # 修改默认值为All，表示同时构建Debug和Release
 BUILD_DIR=""
 INSTALL_PREFIX="/usr/local"
 CLEAN=false
@@ -137,8 +137,9 @@ show_build_help() {
     echo ""
     echo "选项:"
     echo "  -h, --help                显示帮助信息"
-    echo "  -t, --type TYPE           设置构建类型 (Debug|Release|RelWithDebInfo|MinSizeRel)"
-    echo "                            默认: Debug"
+    echo "  -t, --type TYPE           设置构建类型 (Debug|Release|RelWithDebInfo|MinSizeRel|All)"
+    echo "                            All表示同时构建Debug和Release版本"
+    echo "                            默认: All"
     echo "  -b, --build-dir DIR       设置构建目录"
     echo "                            默认: build"
     echo "  -p, --prefix PREFIX       设置安装前缀"
@@ -165,9 +166,9 @@ show_build_help() {
 
 # 验证构建类型
 validate_build_type() {
-    if [[ ! "$BUILD_TYPE" =~ ^(Debug|Release|RelWithDebInfo|MinSizeRel)$ ]]; then
+    if [[ ! "$BUILD_TYPE" =~ ^(Debug|Release|RelWithDebInfo|MinSizeRel|All)$ ]]; then
         echo "错误: 无效的构建类型 '$BUILD_TYPE'"
-        echo "有效的构建类型: Debug, Release, RelWithDebInfo, MinSizeRel"
+        echo "有效的构建类型: Debug, Release, RelWithDebInfo, MinSizeRel, All"
         exit 1
     fi
 }
@@ -350,18 +351,57 @@ build_project() {
     # 验证参数
     validate_build_type
     
+    # 如果BUILD_TYPE为All，则分别构建Debug和Release版本
+    if [ "$BUILD_TYPE" = "All" ]; then
+        echo "构建Debug和Release两个版本..."
+        
+        # 构建Debug版本
+        BUILD_TYPE="Debug"
+        build_single_version
+        
+        # 构建Release版本
+        BUILD_TYPE="Release"
+        build_single_version
+        
+        echo "Debug和Release版本构建完成!"
+        echo "Debug版本可执行文件位于: $PROJECT_DIR/build/Debug/bin/"
+        echo "Release版本可执行文件位于: $PROJECT_DIR/build/Release/bin/"
+        return 0
+    else
+        # 构建单个版本
+        build_single_version
+        echo "构建完成!"
+        echo "可执行文件位于: $BUILD_DIR/bin/webserver"
+    fi
+}
+
+# 构建单个版本的函数
+build_single_version() {
+    local CURRENT_BUILD_DIR=""
+    
+    # 如果是All模式，为每个版本创建独立的构建目录
+    if [ "$BUILD_TYPE" = "All" ]; then
+        CURRENT_BUILD_DIR="$PROJECT_DIR/build/$BUILD_TYPE"
+    else
+        CURRENT_BUILD_DIR="$BUILD_DIR"
+    fi
+    
     # 设置CMake参数
     set_cmake_args
     
     # 检查磁盘空间
+    BUILD_DIR="$CURRENT_BUILD_DIR"
     check_disk_space
     
     # 清理构建目录
-    clean_build_dir
+    if [ "$CLEAN" = true ] && [ -d "$CURRENT_BUILD_DIR" ]; then
+        echo "清理构建目录: $CURRENT_BUILD_DIR"
+        rm -rf "$CURRENT_BUILD_DIR"
+    fi
     
     # 创建构建目录
-    mkdir -p "$BUILD_DIR"
-    cd "$BUILD_DIR"
+    mkdir -p "$CURRENT_BUILD_DIR"
+    cd "$CURRENT_BUILD_DIR"
     
     # 检查Ninja是否可用
     if command -v ninja >/dev/null 2>&1; then
@@ -393,7 +433,4 @@ build_project() {
             cmake --build . --config "$BUILD_TYPE" -j "$JOBS"
         fi
     fi
-    
-    echo "构建完成!"
-    echo "可执行文件位于: $BUILD_DIR/bin/webserver"
 }

@@ -54,8 +54,15 @@ run_benchmark() {
         esac
     done
     
-    # 检查构建目录是否存在
-    if [ ! -d "$BUILD_DIR" ]; then
+    # 检查构建目录是否存在，优先检查Release版本
+    if [ -d "$BUILD_DIR/Release" ]; then
+        # 使用Release版本进行基准测试
+        BUILD_DIR="$BUILD_DIR/Release"
+        echo "检测到Release版本，将使用Release版本进行基准测试"
+    elif [ -d "$BUILD_DIR" ]; then
+        # 使用默认构建目录
+        echo "使用默认构建目录进行基准测试"
+    else
         echo "错误: 构建目录 '$BUILD_DIR' 不存在"
         echo "请先运行构建命令: $0 build"
         exit 1

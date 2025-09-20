@@ -60,8 +60,15 @@ run_tests() {
         esac
     done
     
-    # 检查构建目录是否存在
-    if [ ! -d "$BUILD_DIR" ]; then
+    # 检查构建目录是否存在，优先检查Debug版本
+    if [ -d "$BUILD_DIR/Debug" ]; then
+        # 使用Debug版本进行测试
+        BUILD_DIR="$BUILD_DIR/Debug"
+        echo "检测到Debug版本，将使用Debug版本进行测试"
+    elif [ -d "$BUILD_DIR" ]; then
+        # 使用默认构建目录
+        echo "使用默认构建目录进行测试"
+    else
         echo "错误: 构建目录 '$BUILD_DIR' 不存在"
         echo "请先运行构建命令: $0 build"
         exit 1
