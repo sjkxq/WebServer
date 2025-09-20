@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.14)
 project(WebServer VERSION 1.0 LANGUAGES CXX)
 
 # 包含配置文件
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/CompilerOptions.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Dependencies.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/config/CompilerOptions.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/config/Dependencies.cmake)
 
 # 启用测试
 enable_testing()
