@@ -1,4 +1,6 @@
 #include "HealthCheckController.h"
+#include "http/HttpResponse.hpp"
+#include "HttpStatus.hpp"
 #include <sys/resource.h>
 #include <fstream>
 #include <sstream>
@@ -23,9 +25,10 @@ std::shared_ptr<HttpResponse> HealthCheckController::checkHealth(const HttpReque
          << "}"
          << "}";
     
-    return HttpResponse::create(200, json.str(), {
-        {"Content-Type", "application/json"}
-    });
+    auto response = std::make_shared<HttpResponse>(
+        HttpResponse(HttpStatus::OK, json.str(), {{"Content-Type", "application/json"}})
+    );
+    return response;
 }
 
 double HealthCheckController::getCpuUsage() {

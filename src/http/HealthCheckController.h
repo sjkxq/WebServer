@@ -1,8 +1,8 @@
 #ifndef WEBSERVER_HEALTHCHECK_CONTROLLER_H
 #define WEBSERVER_HEALTHCHECK_CONTROLLER_H
 
-#include "http/HttpRequest.h"
-#include "http/HttpResponse.h"
+#include "http/HttpRequest.hpp"
+#include "http/HttpResponse.hpp"
 #include <memory>
 
 namespace webserver {
