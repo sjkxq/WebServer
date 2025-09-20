@@ -192,8 +192,8 @@ set_cmake_args() {
             CMAKE_ARGS+=("-DCMAKE_C_FLAGS=-Os -g1 --param ggc-min-expand=10 --param ggc-min-heapsize=32768")
         else
             # 在其他构建模式下，保持优化级别不变，但仍然应用内存优化
-            CMAKE_ARGS+=("-DCMAKE_CXX_FLAGS_EXTRA=--param ggc-min-expand=10 --param ggc-min-heapsize=32768")
-            CMAKE_ARGS+=("-DCMAKE_C_FLAGS_EXTRA=--param ggc-min-expand=10 --param ggc-min-heapsize=32768")
+            CMAKE_ARGS+=("-DCMAKE_CXX_FLAGS=--param ggc-min-expand=10 --param ggc-min-heapsize=32768")
+            CMAKE_ARGS+=("-DCMAKE_C_FLAGS=--param ggc-min-expand=10 --param ggc-min-heapsize=32768")
         fi
         
         # 减少CMake自身的内存使用

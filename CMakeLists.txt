@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.14)
 project(WebServer VERSION 1.0 LANGUAGES CXX)
 
+# 设置CMP0069策略以解决GoogleTest的警告
+if(POLICY CMP0069)
+    cmake_policy(SET CMP0069 NEW)
+endif()
+
 # 包含配置文件
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/config/CompilerOptions.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/config/Dependencies.cmake)
