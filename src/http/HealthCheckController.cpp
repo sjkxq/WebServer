@@ -25,9 +25,9 @@ std::shared_ptr<HttpResponse> HealthCheckController::checkHealth(const HttpReque
          << "}"
          << "}";
     
-    auto response = std::make_shared<HttpResponse>(
-        HttpResponse(HttpStatus::OK, json.str(), {{"Content-Type", "application/json"}})
-    );
+    auto httpResponse = HttpResponse(HttpStatus::OK, json.str(), "application/json");
+    httpResponse.setHeader("Content-Type", "application/json");
+    auto response = std::make_shared<HttpResponse>(httpResponse);
     return response;
 }
 
