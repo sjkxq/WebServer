@@ -18,6 +18,26 @@ if(BUILD_TESTS)
     # 避免覆盖父项目的编译器/链接器设置
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(googletest)
+    
+    # 为Google Test目标添加编译选项，以解决空指针解引用警告问题
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(gtest PRIVATE 
+            -Wno-error=null-dereference
+            -Wno-null-dereference
+        )
+        target_compile_options(gtest_main PRIVATE 
+            -Wno-error=null-dereference
+            -Wno-null-dereference
+        )
+        target_compile_options(gmock PRIVATE 
+            -Wno-error=null-dereference
+            -Wno-null-dereference
+        )
+        target_compile_options(gmock_main PRIVATE 
+            -Wno-error=null-dereference
+            -Wno-null-dereference
+        )
+    endif()
 endif()
 
 # 添加Google Benchmark
