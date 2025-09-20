@@ -6,6 +6,7 @@
 #include "Logger.hpp"
 #include "ConnectionManager.hpp"
 #include "http/HealthCheckController.h"
+#include "HttpParser.hpp"
 #include <iostream>
 #include <thread>
 #include <chrono>
@@ -217,7 +218,10 @@ void WebServer::handleConnection(int clientSocket) {
         std::string path;
         std::map<std::string, std::string> headers;
         std::string body;
-        std::tie(std::ignore, path, headers, body) = HttpParser::parseRequest(request);
+        HttpRequest requestObj = HttpParser::parseRequestToObject(request);
+        path = requestObj.getPath();
+        headers = requestObj.getHeaders();
+        body = requestObj.getBody();
         LOG_INFO("Received request for path: " + path);
         
         // 检查Connection头，确定是否保持连接
@@ -254,12 +258,24 @@ void WebServer::handleConnection(int clientSocket) {
             bool useChunked = headers.count("Transfer-Encoding") > 0 && 
                              headers["Transfer-Encoding"] == "chunked";
             
+            HttpResponse httpResponse(HttpStatus::OK, content, "text/html");
+            // 添加自定义头部
+            for (const auto& header : responseHeaders) {
+                httpResponse.setHeader(header.first, header.second);
+            }
+            
             response = useChunked ? 
-                HttpParser::buildChunkedResponse(HttpStatus::OK, content, responseHeaders) :
-                HttpParser::buildResponse(HttpStatus::OK, content, responseHeaders);
+                HttpParser::buildChunkedResponse(httpResponse) :
+                HttpParser::buildResponse(httpResponse);
         } else {
-            response = HttpParser::buildResponse(HttpStatus::NOT_FOUND, 
-                "<html><body><h1>404 Not Found</h1></body></html>", responseHeaders);
+            HttpResponse httpResponse(HttpStatus::NOT_FOUND, 
+                "<html><body><h1>404 Not Found</h1></body></html>", "text/html");
+            // 添加自定义头部
+            for (const auto& header : responseHeaders) {
+                httpResponse.setHeader(header.first, header.second);
+            }
+            
+            response = HttpParser::buildResponse(httpResponse);
         }
         
         // 发送响应
