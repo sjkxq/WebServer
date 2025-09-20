@@ -259,17 +259,18 @@ generate_coverage() {
     
     # 配置CMake以启用覆盖率
     echo "配置CMake以启用测试覆盖率..."
-    local CMAKE_FLAGS=""
+    local CMAKE_CXX_FLAGS="--coverage"
+    local CMAKE_C_FLAGS="--coverage"
+    
     if [[ "$ATOMIC_PROFILE" == true ]]; then
-        CMAKE_FLAGS="-DCMAKE_CXX_FLAGS=\"--coverage -fprofile-update=atomic\" -DCMAKE_C_FLAGS=\"--coverage -fprofile-update=atomic\""
-    else
-        CMAKE_FLAGS="-DCMAKE_CXX_FLAGS=\"--coverage\" -DCMAKE_C_FLAGS=\"--coverage\""
+        CMAKE_CXX_FLAGS="--coverage -fprofile-update=atomic"
+        CMAKE_C_FLAGS="--coverage -fprofile-update=atomic"
     fi
     
-    # 使用eval执行命令以正确处理引号
-    eval cmake -DCMAKE_BUILD_TYPE=Debug \
+    cmake -DCMAKE_BUILD_TYPE=Debug \
           -DBUILD_COVERAGE=true \
-          $CMAKE_FLAGS \
+          -DCMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS" \
+          -DCMAKE_C_FLAGS="$CMAKE_C_FLAGS" \
           "$PROJECT_DIR"
     
     # 构建项目
@@ -298,13 +299,13 @@ generate_coverage() {
         LCOV_FLAGS="--ignore-errors mismatch,gcov"
     fi
     
-    # 正确配置geninfo参数
+    # 使用geninfo_unexecuted_blocks=1来处理警告
     local GENINFO_FLAGS="--rc geninfo_unexecuted_blocks=1"
     if [[ "$ATOMIC_PROFILE" == true ]]; then
         GENINFO_FLAGS="$GENINFO_FLAGS --rc geninfo_gcov_tool='gcov --profile-update=atomic'"
     fi
     
-    # 正确导出环境变量，使用单引号避免转义问题
+    # 导出环境变量
     export LC_GCOV_ARGS="--rc geninfo_unexecuted_blocks=1"
     if [[ "$ATOMIC_PROFILE" == true ]]; then
         export LC_GCOV_ARGS="--rc geninfo_unexecuted_blocks=1 --rc geninfo_gcov_tool='gcov --profile-update=atomic'"
