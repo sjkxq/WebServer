@@ -31,29 +31,6 @@ show_help() {
     echo ""
 }
 
-# 加载其他脚本模块
-load_modules() {
-    if [[ -f "$SCRIPT_DIR/build.sh" ]]; then
-        source "$SCRIPT_DIR/build.sh"
-    fi
-    
-    if [[ -f "$SCRIPT_DIR/test.sh" ]]; then
-        source "$SCRIPT_DIR/test.sh"
-    fi
-    
-    if [[ -f "$SCRIPT_DIR/clean.sh" ]]; then
-        source "$SCRIPT_DIR/clean.sh"
-    fi
-    
-    if [[ -f "$SCRIPT_DIR/benchmark.sh" ]]; then
-        source "$SCRIPT_DIR/benchmark.sh"
-    fi
-    
-    if [[ -f "$SCRIPT_DIR/install.sh" ]]; then
-        source "$SCRIPT_DIR/install.sh"
-    fi
-}
-
 # 初始化脚本权限
 init_scripts() {
     echo "为所有脚本授予执行权限..."
@@ -66,9 +43,6 @@ init_scripts() {
 
 # 主函数
 main() {
-    # 加载模块
-    load_modules
-    
     # 解析命令行参数
     case "$1" in
         init)
@@ -77,23 +51,23 @@ main() {
             ;;
         build)
             shift
-            build_project "$@"
+            "$SCRIPT_DIR/build.sh" "$@"
             ;;
         test)
             shift
-            run_tests "$@"
+            "$SCRIPT_DIR/test.sh" "$@"
             ;;
         clean)
             shift
-            clean_build "$@"
+            "$SCRIPT_DIR/clean.sh" "$@"
             ;;
         benchmark)
             shift
-            run_benchmark "$@"
+            "$SCRIPT_DIR/benchmark.sh" "$@"
             ;;
         install)
             shift
-            install_project "$@"
+            "$SCRIPT_DIR/install.sh" "$@"
             ;;
         help|--help|-h)
             show_help
@@ -107,12 +81,6 @@ main() {
             exit 1
             ;;
     esac
-
-    # 检查是否成功执行了任何命令
-    if [[ $# -eq 0 ]]; then
-        show_help
-        exit 1
-    fi
 }
 
 # 如果直接运行此脚本，则执行main函数
