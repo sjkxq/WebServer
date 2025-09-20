@@ -89,6 +89,16 @@ FetchContent_MakeAvailable(json)
 # 代码覆盖率配置
 if((BUILD_COVERAGE OR COVERAGE) AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(--coverage -O0)
+    # 检查是否支持-fprofile-update=atomic选项
+    include(CheckCXXCompilerFlag)
+    check_cxx_compiler_flag("-fprofile-update=atomic" HAS_PROFILE_UPDATE_ATOMIC)
+    if(HAS_PROFILE_UPDATE_ATOMIC)
+        # 支持atomic profile update
+        set(ATOMIC_PROFILE_UPDATE_FLAG "-fprofile-update=atomic")
+    else()
+        set(ATOMIC_PROFILE_UPDATE_FLAG "")
+    endif()
+    
     add_link_options(--coverage)
 endif()
 

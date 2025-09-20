@@ -259,18 +259,20 @@ generate_coverage() {
     
     # 配置CMake以启用覆盖率
     echo "配置CMake以启用测试覆盖率..."
-    local CMAKE_FLAGS=""
+    
+    # 构建CMake命令
+    local CMAKE_CMD="cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_COVERAGE=true"
+    
     if [[ "$ATOMIC_PROFILE" == true ]]; then
-        CMAKE_FLAGS="-DCMAKE_CXX_FLAGS=\"--coverage -fprofile-update=atomic\" -DCMAKE_C_FLAGS=\"--coverage -fprofile-update=atomic\""
+        CMAKE_CMD="$CMAKE_CMD -DCMAKE_CXX_FLAGS=\"--coverage -fprofile-update=atomic\" -DCMAKE_C_FLAGS=\"--coverage -fprofile-update=atomic\""
     else
-        CMAKE_FLAGS="-DCMAKE_CXX_FLAGS=\"--coverage\" -DCMAKE_C_FLAGS=\"--coverage\""
+        CMAKE_CMD="$CMAKE_CMD -DCMAKE_CXX_FLAGS=\"--coverage\" -DCMAKE_C_FLAGS=\"--coverage\""
     fi
     
+    CMAKE_CMD="$CMAKE_CMD \"$PROJECT_DIR\""
+    
     # 使用eval执行命令以正确处理引号
-    eval cmake -DCMAKE_BUILD_TYPE=Debug \
-          -DBUILD_COVERAGE=true \
-          $CMAKE_FLAGS \
-          "$PROJECT_DIR"
+    eval $CMAKE_CMD
     
     # 构建项目
     echo "构建项目..."
@@ -292,29 +294,30 @@ generate_coverage() {
     echo "捕获覆盖率数据..."
     local LCOV_FLAGS=""
     if [[ "$IGNORE_ERRORS" == true ]]; then
-        LCOV_FLAGS="--ignore-errors mismatch,gcov,negative"
+        LCOV_FLAGS="--ignore-errors mismatch,gcov,negative,unused"
     else
-        # 默认忽略mismatch和gcov错误，但不忽略negative错误
-        LCOV_FLAGS="--ignore-errors mismatch,gcov"
+        # 默认忽略mismatch、gcov和unused错误，但不忽略negative错误
+        LCOV_FLAGS="--ignore-errors mismatch,gcov,unused"
     fi
     
     # 正确配置geninfo参数
     local GENINFO_FLAGS="--rc geninfo_unexecuted_blocks=1"
     if [[ "$ATOMIC_PROFILE" == true ]]; then
-        GENINFO_FLAGS="$GENINFO_FLAGS --rc geninfo_gcov_tool=gcov"
+        GENINFO_FLAGS="$GENINFO_FLAGS --rc geninfo_gcov_tool=\"gcov --profile-update=atomic\""
     fi
     
     # 正确导出环境变量，使用单引号避免转义问题
-    export LC_GCOV_ARGS="--rc geninfo_unexecuted_blocks=1"
+    export LC_GCOV_ARGS="geninfo_unexecuted_blocks=1"
     if [[ "$ATOMIC_PROFILE" == true ]]; then
-        export LC_GCOV_ARGS="--rc geninfo_unexecuted_blocks=1 --rc geninfo_gcov_tool=gcov"
+        export LC_GCOV_ARGS="geninfo_unexecuted_blocks=1 --rc geninfo_gcov_tool='gcov --profile-update=atomic'"
     fi
     
+    # 尝试捕获覆盖率数据
     if ! lcov --capture --directory . --output-file coverage.info $LCOV_FLAGS $GENINFO_FLAGS; then
         echo "警告: 覆盖率数据捕获失败，尝试使用忽略所有错误模式..."
         if [[ "$IGNORE_ERRORS" == false ]]; then
             echo "重新尝试并忽略所有错误..."
-            if ! lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch,gcov,negative $GENINFO_FLAGS; then
+            if ! lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch,gcov,negative,unused $GENINFO_FLAGS; then
                 echo "错误: 即使忽略错误也无法捕获覆盖率数据"
                 exit 1
             fi
@@ -326,13 +329,17 @@ generate_coverage() {
     
     # 过滤掉系统头文件和第三方库
     echo "过滤系统和第三方库的覆盖率数据..."
+    local REMOVE_FLAGS=""
+    if [[ "$IGNORE_ERRORS" == true ]]; then
+        REMOVE_FLAGS="--ignore-errors unused"
+    fi
+    
     if ! lcov --remove coverage.info \
          '/usr/include/*' \
-         '*/build/*' \
+         '*/build/_deps/*' \
          '*/test/*' \
-         '*/_deps/googletest-*/*' \
          '*/nlohmann/*' \
-         --output-file coverage_filtered.info; then
+         --output-file coverage_filtered.info $REMOVE_FLAGS; then
         echo "警告: 过滤覆盖率数据时出现问题，尝试继续..."
     fi
     
