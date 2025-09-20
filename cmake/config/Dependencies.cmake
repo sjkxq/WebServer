@@ -87,7 +87,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(json)
 
 # 代码覆盖率配置
-if(BUILD_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+if((BUILD_COVERAGE OR COVERAGE) AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(--coverage -O0)
     add_link_options(--coverage)
 endif()

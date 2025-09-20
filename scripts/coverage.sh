@@ -17,12 +17,150 @@ show_coverage_help() {
     echo "  --html                    生成HTML格式报告"
     echo "  --xml                     生成XML格式报告"
     echo "  --low-memory              低内存模式运行测试"
+    echo "  --auto-install            自动安装缺失的依赖（需要sudo权限）"
     echo ""
     echo "示例:"
     echo "  $0 coverage"
     echo "  $0 coverage --html"
     echo "  $0 coverage --html --xml"
+    echo "  $0 coverage --auto-install"
     echo ""
+}
+
+# 检测操作系统类型
+detect_os() {
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        if command -v apt-get >/dev/null 2>&1; then
+            echo "debian"
+        elif command -v yum >/dev/null 2>&1; then
+            echo "redhat"
+        elif command -v pacman >/dev/null 2>&1; then
+            echo "arch"
+        else
+            echo "unknown"
+        fi
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "macos"
+    else
+        echo "unknown"
+    fi
+}
+
+# 尝试自动安装依赖
+install_dependencies() {
+    local OS_TYPE=$(detect_os)
+    echo "检测到操作系统类型: $OS_TYPE"
+    
+    case $OS_TYPE in
+        debian)
+            echo "尝试使用 apt-get 安装依赖..."
+            if command -v sudo >/dev/null 2>&1; then
+                sudo apt-get update
+                sudo apt-get install -y lcov gcovr
+            else
+                echo "警告: 未找到sudo命令，尝试直接安装..."
+                apt-get update
+                apt-get install -y lcov gcovr
+            fi
+            ;;
+        redhat)
+            echo "尝试使用 yum 安装依赖..."
+            if command -v sudo >/dev/null 2>&1; then
+                sudo yum install -y lcov gcovr
+            else
+                echo "警告: 未找到sudo命令，尝试直接安装..."
+                yum install -y lcov gcovr
+            fi
+            ;;
+        arch)
+            echo "尝试使用 pacman 安装依赖..."
+            if command -v sudo >/dev/null 2>&1; then
+                sudo pacman -Syu lcov gcovr --noconfirm
+            else
+                echo "警告: 未找到sudo命令，尝试直接安装..."
+                pacman -Syu lcov gcovr --noconfirm
+            fi
+            ;;
+        macos)
+            echo "尝试使用 brew 安装依赖..."
+            if command -v brew >/dev/null 2>&1; then
+                brew install lcov gcovr
+            else
+                echo "错误: 未找到brew命令，请先安装Homebrew"
+                return 1
+            fi
+            ;;
+        *)
+            echo "错误: 不支持的操作系统或包管理器"
+            echo "请手动安装以下依赖:"
+            echo "  - lcov"
+            echo "  - gcovr"
+            return 1
+            ;;
+    esac
+}
+
+# 检查依赖
+check_dependencies() {
+    local AUTO_INSTALL=false
+    
+    # 检查是否有--auto-install参数
+    for arg in "$@"; do
+        if [[ "$arg" == "--auto-install" ]]; then
+            AUTO_INSTALL=true
+            break
+        fi
+    done
+    
+    # 检查gcov是否已安装
+    if ! command -v gcov >/dev/null 2>&1; then
+        echo "错误: gcov 未安装"
+        if [[ "$AUTO_INSTALL" == true ]]; then
+            echo "尝试自动安装依赖..."
+            if ! install_dependencies; then
+                echo "自动安装失败，请手动安装依赖"
+                exit 1
+            fi
+        else
+            echo "请安装gcov后再运行此脚本"
+            echo "提示: 可使用 --auto-install 参数尝试自动安装依赖"
+            exit 1
+        fi
+    fi
+    
+    # 检查lcov是否已安装
+    if ! command -v lcov >/dev/null 2>&1; then
+        echo "错误: lcov 未安装"
+        if [[ "$AUTO_INSTALL" == true ]]; then
+            echo "尝试自动安装依赖..."
+            if ! install_dependencies; then
+                echo "自动安装失败，请手动安装依赖"
+                exit 1
+            fi
+        else
+            echo "请安装lcov后再运行此脚本"
+            echo "提示: 可使用 --auto-install 参数尝试自动安装依赖"
+            exit 1
+        fi
+    fi
+    
+    # 检查genhtml是否已安装
+    if ! command -v genhtml >/dev/null 2>&1; then
+        echo "错误: genhtml 未安装"
+        if [[ "$AUTO_INSTALL" == true ]]; then
+            echo "尝试自动安装依赖..."
+            if ! install_dependencies; then
+                echo "自动安装失败，请手动安装依赖"
+                exit 1
+            fi
+        else
+            echo "请安装lcov (包含genhtml)后再运行此脚本"
+            echo "提示: 可使用 --auto-install 参数尝试自动安装依赖"
+            exit 1
+        fi
+    fi
+    
+    echo "所有依赖检查通过"
 }
 
 # 生成测试覆盖率报告主函数
@@ -34,6 +172,7 @@ generate_coverage() {
     local GENERATE_HTML=false
     local GENERATE_XML=false
     local LOW_MEMORY_MODE=false
+    local AUTO_INSTALL=false
     
     # 解析命令行参数
     while [[ $# -gt 0 ]]; do
@@ -70,6 +209,10 @@ generate_coverage() {
                 LOW_MEMORY_MODE=true
                 shift
                 ;;
+            --auto-install)
+                AUTO_INSTALL=true
+                shift
+                ;;
             *)
                 echo "未知选项: $1"
                 show_coverage_help
@@ -80,21 +223,8 @@ generate_coverage() {
     
     echo "开始生成测试覆盖率报告..."
     
-    # 检查gcov和lcov是否已安装
-    if ! command -v gcov >/dev/null 2>&1; then
-        echo "错误: gcov 未安装，请先安装 gcov"
-        exit 1
-    fi
-    
-    if ! command -v lcov >/dev/null 2>&1; then
-        echo "错误: lcov 未安装，请先安装 lcov"
-        exit 1
-    fi
-    
-    if ! command -v genhtml >/dev/null 2>&1; then
-        echo "错误: genhtml 未安装，请先安装 lcov"
-        exit 1
-    fi
+    # 检查依赖
+    check_dependencies "$@"
     
     # 如果没有指定格式，则默认生成HTML报告
     if [[ "$GENERATE_HTML" == false && "$GENERATE_XML" == false ]]; then
@@ -113,7 +243,7 @@ generate_coverage() {
     # 配置CMake以启用覆盖率
     echo "配置CMake以启用测试覆盖率..."
     cmake -DCMAKE_BUILD_TYPE=Debug \
-          -DCOVERAGE=true \
+          -DBUILD_COVERAGE=true \
           -DCMAKE_CXX_FLAGS="--coverage" \
           -DCMAKE_C_FLAGS="--coverage" \
           "$PROJECT_DIR"

@@ -28,6 +28,7 @@ show_help() {
     echo "  $0 build"
     echo "  $0 test"
     echo "  $0 coverage"
+    echo "  $0 coverage --auto-install"
     echo "  $0 clean"
     echo ""
 }
