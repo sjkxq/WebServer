@@ -104,9 +104,9 @@ install_dependencies() {
 check_dependencies() {
     local AUTO_INSTALL=false
     
-    # 检查是否有--auto-install参数
-    for arg in "$@"; do
-        if [[ "$arg" == "--auto-install" ]]; then
+    # 检查参数中是否包含--auto-install
+    for param in "$@"; do
+        if [[ "$param" == "--auto-install" ]]; then
             AUTO_INSTALL=true
             break
         fi
@@ -142,10 +142,19 @@ check_dependencies() {
             
             # 重新检查依赖
             echo "重新检查依赖..."
-            if ! command -v gcov >/dev/null 2>&1 || \
-               ! command -v lcov >/dev/null 2>&1 || \
-               ! command -v genhtml >/dev/null 2>&1; then
-                echo "依赖安装后仍然存在问题，请手动检查安装"
+            local still_missing=()
+            if ! command -v gcov >/dev/null 2>&1; then
+                still_missing+=("gcov")
+            fi
+            if ! command -v lcov >/dev/null 2>&1; then
+                still_missing+=("lcov")
+            fi
+            if ! command -v genhtml >/dev/null 2>&1; then
+                still_missing+=("genhtml")
+            fi
+            
+            if [[ ${#still_missing[@]} -gt 0 ]]; then
+                echo "依赖安装后仍然存在问题，请手动检查安装: ${still_missing[*]}"
                 exit 1
             fi
         else
@@ -218,7 +227,7 @@ generate_coverage() {
     
     echo "开始生成测试覆盖率报告..."
     
-    # 检查依赖
+    # 检查依赖，传递所有原始参数
     check_dependencies "$@"
     
     # 如果没有指定格式，则默认生成HTML报告
