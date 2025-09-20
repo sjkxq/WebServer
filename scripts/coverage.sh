@@ -18,6 +18,7 @@ show_coverage_help() {
     echo "  --xml                     生成XML格式报告"
     echo "  --low-memory              低内存模式运行测试"
     echo "  --auto-install            自动安装缺失的依赖（需要sudo权限）"
+    echo "  --ignore-errors           忽略geninfo错误"
     echo ""
     echo "示例:"
     echo "  $0 coverage"
@@ -177,6 +178,7 @@ generate_coverage() {
     local GENERATE_XML=false
     local LOW_MEMORY_MODE=false
     local AUTO_INSTALL=false
+    local IGNORE_ERRORS=false
     
     # 解析命令行参数
     while [[ $# -gt 0 ]]; do
@@ -215,6 +217,10 @@ generate_coverage() {
                 ;;
             --auto-install)
                 AUTO_INSTALL=true
+                shift
+                ;;
+            --ignore-errors)
+                IGNORE_ERRORS=true
                 shift
                 ;;
             *)
@@ -270,18 +276,40 @@ generate_coverage() {
     
     # 捕获覆盖率数据
     echo "捕获覆盖率数据..."
-    lcov --capture --directory . --output-file coverage.info
+    local LCOV_FLAGS=""
+    if [[ "$IGNORE_ERRORS" == true ]]; then
+        LCOV_FLAGS="--ignore-errors mismatch,gcov"
+    fi
+    
+    # 使用geninfo_unexecuted_blocks=1来处理警告
+    export LC_GCOV_ARGS="--rc geninfo_unexecuted_blocks=1"
+    
+    if ! lcov --capture --directory . --output-file coverage.info $LCOV_FLAGS; then
+        echo "警告: 覆盖率数据捕获失败，尝试使用忽略错误模式..."
+        if [[ "$IGNORE_ERRORS" == false ]]; then
+            echo "重新尝试并忽略错误..."
+            if ! lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch,gcov; then
+                echo "错误: 即使忽略错误也无法捕获覆盖率数据"
+                exit 1
+            fi
+        else
+            echo "错误: 覆盖率数据捕获失败"
+            exit 1
+        fi
+    fi
     
     # 过滤掉系统头文件和第三方库
     echo "过滤系统和第三方库的覆盖率数据..."
-    lcov --remove coverage.info \
+    if ! lcov --remove coverage.info \
          '/usr/*' \
          '*/third_party/*' \
          '*/build/*' \
          '*/test/*' \
          '*/googletest/*' \
          '*/nlohmann/*' \
-         --output-file coverage_filtered.info
+         --output-file coverage_filtered.info; then
+        echo "警告: 过滤覆盖率数据时出现问题，尝试继续..."
+    fi
     
     # 创建输出目录
     mkdir -p "$OUTPUT_DIR"
@@ -289,27 +317,34 @@ generate_coverage() {
     # 生成HTML报告
     if [[ "$GENERATE_HTML" == true ]]; then
         echo "生成HTML格式覆盖率报告..."
-        genhtml coverage_filtered.info \
+        if genhtml coverage_filtered.info \
                  --output-directory "$OUTPUT_DIR/html" \
                  --title "WebServer 测试覆盖率报告" \
                  --legend \
-                 --show-details
-        
-        echo "HTML格式覆盖率报告已生成到: $OUTPUT_DIR/html"
+                 --show-details; then
+            echo "HTML格式覆盖率报告已生成到: $OUTPUT_DIR/html"
+        else
+            echo "警告: HTML报告生成过程中出现问题"
+        fi
     fi
     
     # 生成XML报告
     if [[ "$GENERATE_XML" == true ]]; then
         echo "生成XML格式覆盖率报告..."
-        lcov --list coverage_filtered.info --rc lcov_branch_coverage=1 > "$OUTPUT_DIR/coverage.xml"
-        echo "XML格式覆盖率报告已生成到: $OUTPUT_DIR/coverage.xml"
+        if lcov --list coverage_filtered.info --rc lcov_branch_coverage=1 > "$OUTPUT_DIR/coverage.xml"; then
+            echo "XML格式覆盖率报告已生成到: $OUTPUT_DIR/coverage.xml"
+        else
+            echo "警告: XML报告生成过程中出现问题"
+        fi
     fi
     
     # 显示覆盖率摘要
     echo ""
     echo "测试覆盖率摘要:"
     echo "================"
-    lcov --list coverage_filtered.info
+    if ! lcov --list coverage_filtered.info; then
+        echo "警告: 无法显示覆盖率摘要"
+    fi
     
     echo ""
     echo "测试覆盖率报告生成完成!"
