@@ -50,23 +50,23 @@ main() {
             ;;
         build)
             shift
-            "$SCRIPT_DIR/scripts/build.sh" "$@"
+            "$PROJECT_DIR/scripts/build.sh" "$@"
             ;;
         test)
             shift
-            "$SCRIPT_DIR/scripts/test.sh" "$@"
+            "$PROJECT_DIR/scripts/test.sh" "$@"
             ;;
         clean)
             shift
-            "$SCRIPT_DIR/scripts/clean.sh" "$@"
+            "$PROJECT_DIR/scripts/clean.sh" "$@"
             ;;
         benchmark)
             shift
-            "$SCRIPT_DIR/scripts/benchmark.sh" "$@"
+            "$PROJECT_DIR/scripts/benchmark.sh" "$@"
             ;;
         install)
             shift
-            "$SCRIPT_DIR/scripts/install.sh" "$@"
+            "$PROJECT_DIR/scripts/install.sh" "$@"
             ;;
         help|--help|-h)
             show_help
