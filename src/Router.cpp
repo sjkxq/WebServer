@@ -14,9 +14,7 @@ Router::Router() {
     
     // 添加健康检查路由
     addRoute("/health", [](const std::map<std::string, std::string>& headers, const std::string& body) {
-        HttpRequest request;
-        request.setHeaders(headers);
-        request.setBody(body);
+        HttpRequest request("GET", "/health", headers, body);
         
         auto response = HealthCheckController::checkHealth(request);
         return response->getBody();
