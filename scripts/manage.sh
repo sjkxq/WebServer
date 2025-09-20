@@ -51,23 +51,23 @@ main() {
             ;;
         build)
             shift
-            "$SCRIPT_DIR/build.sh" "$@"
+            bash "$SCRIPT_DIR/build.sh" "$@"
             ;;
         test)
             shift
-            "$SCRIPT_DIR/test.sh" "$@"
+            bash "$SCRIPT_DIR/test.sh" "$@"
             ;;
         clean)
             shift
-            "$SCRIPT_DIR/clean.sh" "$@"
+            bash "$SCRIPT_DIR/clean.sh" "$@"
             ;;
         benchmark)
             shift
-            "$SCRIPT_DIR/benchmark.sh" "$@"
+            bash "$SCRIPT_DIR/benchmark.sh" "$@"
             ;;
         install)
             shift
-            "$SCRIPT_DIR/install.sh" "$@"
+            bash "$SCRIPT_DIR/install.sh" "$@"
             ;;
         help|--help|-h)
             show_help
