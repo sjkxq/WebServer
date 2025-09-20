@@ -31,3 +31,5 @@ Makefile
 
 # Dependency directories
 deps/
+
+coverage-report/

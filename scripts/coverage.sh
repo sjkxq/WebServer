@@ -259,18 +259,17 @@ generate_coverage() {
     
     # 配置CMake以启用覆盖率
     echo "配置CMake以启用测试覆盖率..."
-    local CMAKE_CXX_FLAGS="--coverage"
-    local CMAKE_C_FLAGS="--coverage"
-    
+    local CMAKE_FLAGS=""
     if [[ "$ATOMIC_PROFILE" == true ]]; then
-        CMAKE_CXX_FLAGS="--coverage -fprofile-update=atomic"
-        CMAKE_C_FLAGS="--coverage -fprofile-update=atomic"
+        CMAKE_FLAGS="-DCMAKE_CXX_FLAGS=\"--coverage -fprofile-update=atomic\" -DCMAKE_C_FLAGS=\"--coverage -fprofile-update=atomic\""
+    else
+        CMAKE_FLAGS="-DCMAKE_CXX_FLAGS=\"--coverage\" -DCMAKE_C_FLAGS=\"--coverage\""
     fi
     
-    cmake -DCMAKE_BUILD_TYPE=Debug \
+    # 使用eval执行命令以正确处理引号
+    eval cmake -DCMAKE_BUILD_TYPE=Debug \
           -DBUILD_COVERAGE=true \
-          -DCMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS" \
-          -DCMAKE_C_FLAGS="$CMAKE_C_FLAGS" \
+          $CMAKE_FLAGS \
           "$PROJECT_DIR"
     
     # 构建项目
@@ -299,16 +298,16 @@ generate_coverage() {
         LCOV_FLAGS="--ignore-errors mismatch,gcov"
     fi
     
-    # 使用geninfo_unexecuted_blocks=1来处理警告
+    # 正确配置geninfo参数
     local GENINFO_FLAGS="--rc geninfo_unexecuted_blocks=1"
     if [[ "$ATOMIC_PROFILE" == true ]]; then
-        GENINFO_FLAGS="$GENINFO_FLAGS --rc geninfo_gcov_tool='gcov --profile-update=atomic'"
+        GENINFO_FLAGS="$GENINFO_FLAGS --rc geninfo_gcov_tool=gcov"
     fi
     
-    # 导出环境变量
+    # 正确导出环境变量，使用单引号避免转义问题
     export LC_GCOV_ARGS="--rc geninfo_unexecuted_blocks=1"
     if [[ "$ATOMIC_PROFILE" == true ]]; then
-        export LC_GCOV_ARGS="--rc geninfo_unexecuted_blocks=1 --rc geninfo_gcov_tool='gcov --profile-update=atomic'"
+        export LC_GCOV_ARGS="--rc geninfo_unexecuted_blocks=1 --rc geninfo_gcov_tool=gcov"
     fi
     
     if ! lcov --capture --directory . --output-file coverage.info $LCOV_FLAGS $GENINFO_FLAGS; then
@@ -328,11 +327,10 @@ generate_coverage() {
     # 过滤掉系统头文件和第三方库
     echo "过滤系统和第三方库的覆盖率数据..."
     if ! lcov --remove coverage.info \
-         '/usr/*' \
-         '*/third_party/*' \
+         '/usr/include/*' \
          '*/build/*' \
          '*/test/*' \
-         '*/googletest/*' \
+         '*/_deps/googletest-*/*' \
          '*/nlohmann/*' \
          --output-file coverage_filtered.info; then
         echo "警告: 过滤覆盖率数据时出现问题，尝试继续..."
