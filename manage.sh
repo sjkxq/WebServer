@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # WebServer项目统一管理脚本
-# 作者: Assistant
 # 用途: 统一管理WebServer项目的构建、测试、清理等操作
 
 set -e
