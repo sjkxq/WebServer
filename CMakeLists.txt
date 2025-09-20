@@ -32,7 +32,7 @@ install(EXPORT webserver-targets
 # 生成并安装配置文件
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/webserver-config.cmake.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/config/webserver-config.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/webserver-config.cmake
     INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/webserver
 )
