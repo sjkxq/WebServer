@@ -112,49 +112,44 @@ check_dependencies() {
         fi
     done
     
+    local missing_deps=()
+    
     # 检查gcov是否已安装
     if ! command -v gcov >/dev/null 2>&1; then
-        echo "错误: gcov 未安装"
-        if [[ "$AUTO_INSTALL" == true ]]; then
-            echo "尝试自动安装依赖..."
-            if ! install_dependencies; then
-                echo "自动安装失败，请手动安装依赖"
-                exit 1
-            fi
-        else
-            echo "请安装gcov后再运行此脚本"
-            echo "提示: 可使用 --auto-install 参数尝试自动安装依赖"
-            exit 1
-        fi
+        missing_deps+=("gcov")
     fi
     
     # 检查lcov是否已安装
     if ! command -v lcov >/dev/null 2>&1; then
-        echo "错误: lcov 未安装"
-        if [[ "$AUTO_INSTALL" == true ]]; then
-            echo "尝试自动安装依赖..."
-            if ! install_dependencies; then
-                echo "自动安装失败，请手动安装依赖"
-                exit 1
-            fi
-        else
-            echo "请安装lcov后再运行此脚本"
-            echo "提示: 可使用 --auto-install 参数尝试自动安装依赖"
-            exit 1
-        fi
+        missing_deps+=("lcov")
     fi
     
     # 检查genhtml是否已安装
     if ! command -v genhtml >/dev/null 2>&1; then
-        echo "错误: genhtml 未安装"
+        missing_deps+=("genhtml")
+    fi
+    
+    # 如果有缺失的依赖
+    if [[ ${#missing_deps[@]} -gt 0 ]]; then
+        echo "错误: 以下依赖未安装: ${missing_deps[*]}"
+        
         if [[ "$AUTO_INSTALL" == true ]]; then
             echo "尝试自动安装依赖..."
             if ! install_dependencies; then
                 echo "自动安装失败，请手动安装依赖"
                 exit 1
             fi
+            
+            # 重新检查依赖
+            echo "重新检查依赖..."
+            if ! command -v gcov >/dev/null 2>&1 || \
+               ! command -v lcov >/dev/null 2>&1 || \
+               ! command -v genhtml >/dev/null 2>&1; then
+                echo "依赖安装后仍然存在问题，请手动检查安装"
+                exit 1
+            fi
         else
-            echo "请安装lcov (包含genhtml)后再运行此脚本"
+            echo "请安装缺失的依赖后再运行此脚本"
             echo "提示: 可使用 --auto-install 参数尝试自动安装依赖"
             exit 1
         fi
