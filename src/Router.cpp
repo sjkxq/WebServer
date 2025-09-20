@@ -1,8 +1,8 @@
 #include "Router.hpp"
 #include "Logger.hpp"
 #include "http/HealthCheckController.h"
-#include "http/HttpRequest.h"
-#include "http/HttpResponse.h"
+#include "http/HttpRequest.hpp"
+#include "http/HttpResponse.hpp"
 
 namespace webserver {
 
