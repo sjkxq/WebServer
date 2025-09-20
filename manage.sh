@@ -35,7 +35,7 @@ init_scripts() {
     echo "为所有脚本授予执行权限..."
     
     # 为所有脚本文件授予执行权限
-    chmod +x "$SCRIPT_DIR"/*.sh 2>/dev/null || echo "警告: 无法为某些脚本文件授予权限"
+    chmod +x "$SCRIPT_DIR"/scripts/*.sh 2>/dev/null || echo "警告: 无法为某些脚本文件授予权限"
     
     echo "脚本权限初始化完成!"
 }
@@ -50,23 +50,23 @@ main() {
             ;;
         build)
             shift
-            "$PROJECT_DIR/scripts/build.sh" "$@"
+            "$SCRIPT_DIR/scripts/build.sh" "$@"
             ;;
         test)
             shift
-            "$PROJECT_DIR/scripts/test.sh" "$@"
+            "$SCRIPT_DIR/scripts/test.sh" "$@"
             ;;
         clean)
             shift
-            "$PROJECT_DIR/scripts/clean.sh" "$@"
+            "$SCRIPT_DIR/scripts/clean.sh" "$@"
             ;;
         benchmark)
             shift
-            "$PROJECT_DIR/scripts/benchmark.sh" "$@"
+            "$SCRIPT_DIR/scripts/benchmark.sh" "$@"
             ;;
         install)
             shift
-            "$PROJECT_DIR/scripts/install.sh" "$@"
+            "$SCRIPT_DIR/scripts/install.sh" "$@"
             ;;
         help|--help|-h)
             show_help
