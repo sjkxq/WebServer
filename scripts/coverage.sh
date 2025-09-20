@@ -19,12 +19,14 @@ show_coverage_help() {
     echo "  --low-memory              低内存模式运行测试"
     echo "  --auto-install            自动安装缺失的依赖（需要sudo权限）"
     echo "  --ignore-errors           忽略geninfo错误"
+    echo "  --atomic-profile          使用原子配置文件更新（解决负计数问题）"
     echo ""
     echo "示例:"
     echo "  $0 coverage"
     echo "  $0 coverage --html"
     echo "  $0 coverage --html --xml"
     echo "  $0 coverage --auto-install"
+    echo "  $0 coverage --ignore-errors --atomic-profile"
     echo ""
 }
 
@@ -179,6 +181,7 @@ generate_coverage() {
     local LOW_MEMORY_MODE=false
     local AUTO_INSTALL=false
     local IGNORE_ERRORS=false
+    local ATOMIC_PROFILE=false
     
     # 解析命令行参数
     while [[ $# -gt 0 ]]; do
@@ -223,6 +226,10 @@ generate_coverage() {
                 IGNORE_ERRORS=true
                 shift
                 ;;
+            --atomic-profile)
+                ATOMIC_PROFILE=true
+                shift
+                ;;
             *)
                 echo "未知选项: $1"
                 show_coverage_help
@@ -252,10 +259,17 @@ generate_coverage() {
     
     # 配置CMake以启用覆盖率
     echo "配置CMake以启用测试覆盖率..."
-    cmake -DCMAKE_BUILD_TYPE=Debug \
+    local CMAKE_FLAGS=""
+    if [[ "$ATOMIC_PROFILE" == true ]]; then
+        CMAKE_FLAGS="-DCMAKE_CXX_FLAGS=\"--coverage -fprofile-update=atomic\" -DCMAKE_C_FLAGS=\"--coverage -fprofile-update=atomic\""
+    else
+        CMAKE_FLAGS="-DCMAKE_CXX_FLAGS=\"--coverage\" -DCMAKE_C_FLAGS=\"--coverage\""
+    fi
+    
+    # 使用eval执行命令以正确处理引号
+    eval cmake -DCMAKE_BUILD_TYPE=Debug \
           -DBUILD_COVERAGE=true \
-          -DCMAKE_CXX_FLAGS="--coverage" \
-          -DCMAKE_C_FLAGS="--coverage" \
+          $CMAKE_FLAGS \
           "$PROJECT_DIR"
     
     # 构建项目
@@ -278,17 +292,29 @@ generate_coverage() {
     echo "捕获覆盖率数据..."
     local LCOV_FLAGS=""
     if [[ "$IGNORE_ERRORS" == true ]]; then
+        LCOV_FLAGS="--ignore-errors mismatch,gcov,negative"
+    else
+        # 默认忽略mismatch和gcov错误，但不忽略negative错误
         LCOV_FLAGS="--ignore-errors mismatch,gcov"
     fi
     
     # 使用geninfo_unexecuted_blocks=1来处理警告
-    export LC_GCOV_ARGS="--rc geninfo_unexecuted_blocks=1"
+    local GENINFO_FLAGS="--rc geninfo_unexecuted_blocks=1"
+    if [[ "$ATOMIC_PROFILE" == true ]]; then
+        GENINFO_FLAGS="$GENINFO_FLAGS --rc geninfo_gcov_tool=\"gcov -fprofile-update=atomic\""
+    fi
     
-    if ! lcov --capture --directory . --output-file coverage.info $LCOV_FLAGS; then
-        echo "警告: 覆盖率数据捕获失败，尝试使用忽略错误模式..."
+    # 导出环境变量
+    export LC_GCOV_ARGS="--rc geninfo_unexecuted_blocks=1"
+    if [[ "$ATOMIC_PROFILE" == true ]]; then
+        export LC_GCOV_ARGS="--rc geninfo_unexecuted_blocks=1 --rc geninfo_gcov_tool=\"gcov -fprofile-update=atomic\""
+    fi
+    
+    if ! lcov --capture --directory . --output-file coverage.info $LCOV_FLAGS $GENINFO_FLAGS; then
+        echo "警告: 覆盖率数据捕获失败，尝试使用忽略所有错误模式..."
         if [[ "$IGNORE_ERRORS" == false ]]; then
-            echo "重新尝试并忽略错误..."
-            if ! lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch,gcov; then
+            echo "重新尝试并忽略所有错误..."
+            if ! lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch,gcov,negative $GENINFO_FLAGS; then
                 echo "错误: 即使忽略错误也无法捕获覆盖率数据"
                 exit 1
             fi
