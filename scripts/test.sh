@@ -2,10 +2,6 @@
 
 # WebServer项目测试脚本
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-BUILD_DIR="$PROJECT_DIR/build"
-
 # 显示帮助信息
 show_test_help() {
     echo "运行测试"
@@ -27,6 +23,9 @@ show_test_help() {
 
 # 运行测试主函数
 run_tests() {
+    local SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+    local BUILD_DIR="$PROJECT_DIR/build"
     local VERBOSE=false
     local LOW_MEMORY_MODE=false
     

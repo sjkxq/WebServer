@@ -2,10 +2,6 @@
 
 # WebServer项目性能测试脚本
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-BUILD_DIR="$PROJECT_DIR/build"
-
 # 显示帮助信息
 show_benchmark_help() {
     echo "运行性能测试"
@@ -26,6 +22,9 @@ show_benchmark_help() {
 
 # 运行性能测试主函数
 run_benchmark() {
+    local SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+    local BUILD_DIR="$PROJECT_DIR/build"
     local LOW_MEMORY_MODE=false
     
     # 解析命令行参数

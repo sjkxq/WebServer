@@ -2,12 +2,9 @@
 
 # WebServer项目构建脚本
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-
 # 默认参数
 BUILD_TYPE="Debug"
-BUILD_DIR="$PROJECT_DIR/build"
+BUILD_DIR=""
 INSTALL_PREFIX="/usr/local"
 CLEAN=false
 VERBOSE=false
@@ -15,6 +12,8 @@ SHOW_CPU_INFO=false
 LOW_MEMORY_MODE=false
 MAX_MEMORY=""
 JOBS=""
+CORES=""
+TOTAL_MEMORY_MB=""
 
 # 检测系统内存
 detect_memory() {
@@ -254,6 +253,13 @@ clean_build_dir() {
 
 # 构建项目主函数
 build_project() {
+    # 初始化变量
+    local SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+    
+    # 设置默认构建目录
+    BUILD_DIR="$PROJECT_DIR/build"
+    
     # 解析命令行参数
     while [[ $# -gt 0 ]]; do
         case $1 in

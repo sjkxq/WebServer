@@ -2,10 +2,6 @@
 
 # WebServer项目清理脚本
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-BUILD_DIR="$PROJECT_DIR/build"
-
 # 显示帮助信息
 show_clean_help() {
     echo "清理构建目录"
@@ -25,6 +21,10 @@ show_clean_help() {
 
 # 清理构建目录主函数
 clean_build() {
+    local SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+    local BUILD_DIR="$PROJECT_DIR/build"
+    
     # 解析命令行参数
     while [[ $# -gt 0 ]]; do
         case $1 in

@@ -2,10 +2,6 @@
 
 # WebServer项目安装脚本
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-BUILD_DIR="$PROJECT_DIR/build"
-
 # 显示帮助信息
 show_install_help() {
     echo "安装项目"
@@ -27,6 +23,9 @@ show_install_help() {
 
 # 安装项目主函数
 install_project() {
+    local SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+    local BUILD_DIR="$PROJECT_DIR/build"
     local INSTALL_PREFIX="/usr/local"
     
     # 解析命令行参数
