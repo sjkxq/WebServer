@@ -298,16 +298,16 @@ generate_coverage() {
         LCOV_FLAGS="--ignore-errors mismatch,gcov"
     fi
     
-    # 使用geninfo_unexecuted_blocks=1来处理警告
+    # 正确配置geninfo参数
     local GENINFO_FLAGS="--rc geninfo_unexecuted_blocks=1"
     if [[ "$ATOMIC_PROFILE" == true ]]; then
-        GENINFO_FLAGS="$GENINFO_FLAGS --rc geninfo_gcov_tool=\"gcov --profile-update=atomic\""
+        GENINFO_FLAGS="$GENINFO_FLAGS --rc geninfo_gcov_tool='gcov --profile-update=atomic'"
     fi
     
-    # 导出环境变量
+    # 正确导出环境变量，使用单引号避免转义问题
     export LC_GCOV_ARGS="--rc geninfo_unexecuted_blocks=1"
     if [[ "$ATOMIC_PROFILE" == true ]]; then
-        export LC_GCOV_ARGS="--rc geninfo_unexecuted_blocks=1 --rc geninfo_gcov_tool=\"gcov --profile-update=atomic\""
+        export LC_GCOV_ARGS="--rc geninfo_unexecuted_blocks=1 --rc geninfo_gcov_tool='gcov --profile-update=atomic'"
     fi
     
     if ! lcov --capture --directory . --output-file coverage.info $LCOV_FLAGS $GENINFO_FLAGS; then
