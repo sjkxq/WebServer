@@ -303,10 +303,10 @@ generate_coverage() {
     # 正确配置geninfo参数
     local GENINFO_FLAGS="--rc geninfo_unexecuted_blocks=1"
     if [[ "$ATOMIC_PROFILE" == true ]]; then
-        GENINFO_FLAGS="$GENINFO_FLAGS --rc geninfo_gcov_tool=\"gcov --profile-update=atomic\""
+        GENINFO_FLAGS="$GENINFO_FLAGS --rc geninfo_gcov_tool='gcov --profile-update=atomic'"
     fi
     
-    # 正确导出环境变量，使用单引号避免转义问题
+    # 正确导出环境变量
     export LC_GCOV_ARGS="geninfo_unexecuted_blocks=1"
     if [[ "$ATOMIC_PROFILE" == true ]]; then
         export LC_GCOV_ARGS="geninfo_unexecuted_blocks=1 --rc geninfo_gcov_tool='gcov --profile-update=atomic'"
@@ -329,10 +329,7 @@ generate_coverage() {
     
     # 过滤掉系统头文件和第三方库
     echo "过滤系统和第三方库的覆盖率数据..."
-    local REMOVE_FLAGS=""
-    if [[ "$IGNORE_ERRORS" == true ]]; then
-        REMOVE_FLAGS="--ignore-errors unused"
-    fi
+    local REMOVE_FLAGS="--ignore-errors unused"
     
     if ! lcov --remove coverage.info \
          '/usr/include/*' \
