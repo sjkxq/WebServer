@@ -17,6 +17,7 @@ show_help() {
     echo "  init         为所有脚本授予执行权限"
     echo "  build        构建项目"
     echo "  test         运行测试"
+    echo "  coverage     生成测试覆盖率报告"
     echo "  clean        清理构建目录"
     echo "  benchmark    运行性能测试"
     echo "  install      安装项目"
@@ -26,6 +27,10 @@ show_help() {
     echo "  $0 init"
     echo "  $0 build"
     echo "  $0 test"
+    echo "  $0 coverage"
+    echo "  $0 coverage --auto-install"
+    echo "  $0 coverage --ignore-errors"
+    echo "  $0 coverage --atomic-profile"
     echo "  $0 clean"
     echo ""
 }
@@ -50,6 +55,10 @@ load_modules() {
     
     if [[ -f "$SCRIPT_DIR/scripts/install.sh" ]]; then
         source "$SCRIPT_DIR/scripts/install.sh"
+    fi
+    
+    if [[ -f "$SCRIPT_DIR/scripts/coverage.sh" ]]; then
+        source "$SCRIPT_DIR/scripts/coverage.sh"
     fi
 }
 
@@ -81,6 +90,10 @@ main() {
         test)
             shift
             run_tests "$@"
+            ;;
+        coverage)
+            shift
+            generate_coverage "$@"
             ;;
         clean)
             shift

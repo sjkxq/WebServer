@@ -5,6 +5,12 @@ option(BUILD_TESTS "构建测试" ON)
 option(BUILD_BENCHMARKS "构建基准测试" ON)
 option(BUILD_COVERAGE "启用代码覆盖率" OFF)
 
+# 设置CMP0069策略以解决GoogleTest的警告
+# 这个策略控制是否强制执行INTERPROCEDURAL_OPTIMIZATION属性
+if(POLICY CMP0069)
+    cmake_policy(SET CMP0069 NEW)
+endif()
+
 # 引入外部依赖
 include(FetchContent)
 
@@ -37,6 +43,12 @@ if(BUILD_TESTS)
             -Wno-error=null-dereference
             -Wno-null-dereference
         )
+    endif()
+    
+    # 禁用Google Test目标的IPO以避免CMP0069警告
+    if(POLICY CMP0069)
+        set_target_properties(gtest gtest_main gmock gmock_main PROPERTIES
+            INTERPROCEDURAL_OPTIMIZATION FALSE)
     endif()
 endif()
 
@@ -75,8 +87,18 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(json)
 
 # 代码覆盖率配置
-if(BUILD_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    add_compile_options(--coverage -O0)
+if((BUILD_COVERAGE OR COVERAGE) AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    # 检查是否支持-fprofile-update=atomic选项
+    include(CheckCXXCompilerFlag)
+    check_cxx_compiler_flag("-fprofile-update=atomic" HAS_PROFILE_UPDATE_ATOMIC)
+    
+    if(HAS_PROFILE_UPDATE_ATOMIC)
+        # 支持atomic profile update
+        add_compile_options(--coverage -fprofile-update=atomic -O0)
+    else()
+        add_compile_options(--coverage -O0)
+    endif()
+    
     add_link_options(--coverage)
 endif()
 
