@@ -111,9 +111,8 @@ void test_concurrent_allocation() {
                 size_t size = 8 << (j % 8);
                 
                 // Verify memory contents
-                char* mem = static_cast<char*>(pointers[index]);
                 for (size_t k = 0; k < size; ++k) {
-                    assert(mem[k] == static_cast<char>(i));
+                    assert(static_cast<char*>(pointers[index])[k] == static_cast<char>(i));
                 }
                 
                 // Deallocate memory
