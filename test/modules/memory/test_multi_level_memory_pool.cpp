@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <cassert>
+#include <thread>
 
 using namespace WebServer;
 
@@ -77,10 +78,10 @@ void test_concurrent_allocation() {
     std::vector<void*> pointers(1000);
     
     // Create multiple threads that allocate and deallocate memory
-    for (int i = 0; i < 10; ++i) {
+    for (size_t i = 0; i < 10; ++i) {
         threads.emplace_back([&pool, &pointers, i]() {
-            for (int j = 0; j < 100; ++j) {
-                int index = i * 100 + j;
+            for (size_t j = 0; j < 100; ++j) {
+                size_t index = i * 100 + j;
                 // Allocate memory of different sizes
                 size_t size = 8 << (j % 8);  // Sizes from 8 to 1024
                 pointers[index] = pool.allocate(size);
@@ -103,10 +104,10 @@ void test_concurrent_allocation() {
     threads.clear();
     
     // Create threads to verify and deallocate memory
-    for (int i = 0; i < 10; ++i) {
+    for (size_t i = 0; i < 10; ++i) {
         threads.emplace_back([&pool, &pointers, i]() {
-            for (int j = 0; j < 100; ++j) {
-                int index = i * 100 + j;
+            for (size_t j = 0; j < 100; ++j) {
+                size_t index = i * 100 + j;
                 size_t size = 8 << (j % 8);
                 
                 // Verify memory contents
