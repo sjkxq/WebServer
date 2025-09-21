@@ -270,12 +270,12 @@ generate_coverage() {
     # 使用eval执行命令以正确处理引号
     eval $CMAKE_CMD
     
-    # 构建项目
-    echo "构建项目..."
+    # 强制重新构建项目
+    echo "强制重新构建项目..."
     if [[ "$LOW_MEMORY_MODE" == true ]]; then
-        cmake --build . --parallel 1
+        cmake --build . --clean-first --parallel 1
     else
-        cmake --build . --parallel
+        cmake --build . --clean-first --parallel
     fi
     
     # 运行测试以生成覆盖率数据
@@ -290,10 +290,10 @@ generate_coverage() {
     echo "捕获覆盖率数据..."
     local LCOV_FLAGS=""
     if [[ "$IGNORE_ERRORS" == true ]]; then
-        LCOV_FLAGS="--ignore-errors mismatch,gcov,negative,unused"
+        LCOV_FLAGS="--ignore-errors mismatch,gcov,negative,unused,source"
     else
-        # 默认忽略mismatch、gcov和unused错误，但不忽略negative错误
-        LCOV_FLAGS="--ignore-errors mismatch,gcov,unused"
+        # 默认忽略mismatch、gcov、unused和source错误
+        LCOV_FLAGS="--ignore-errors mismatch,gcov,unused,source"
     fi
     
     # 正确配置geninfo参数
