@@ -2,7 +2,7 @@
 
 # 线程模块测试源文件
 set(THREAD_TEST_SOURCES
-    ../../ThreadPool_test.cpp
+    ThreadPool_test.cpp
 )
 
 # 创建线程模块测试可执行文件

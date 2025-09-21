@@ -2,8 +2,8 @@
 
 # HTTP模块测试源文件
 set(HTTP_TEST_SOURCES
-    ../../HttpParser_test.cpp
-    ../../HttpStatus_test.cpp
+    HttpParser_test.cpp
+    HttpStatus_test.cpp
 )
 
 # 创建HTTP模块测试可执行文件

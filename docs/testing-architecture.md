@@ -8,17 +8,33 @@
 
 ```
 test/
-├── fixtures/                 # 测试夹具
-├── modules/                  # 按模块组织的测试
-│   ├── core/                 # 核心功能测试
-│   ├── http/                 # HTTP相关测试
-│   ├── memory/               # 内存管理测试
-│   ├── thread/               # 线程相关测试
-│   ├── logger/               # 日志系统测试
-│   ├── utils/                # 工具类测试
-│   └── ssl/                  # SSL功能测试
-├── ColorOutputTest.cpp       # 颜色输出测试
-└── main.cpp                  # 测试入口
+├── fixtures/                      # 测试夹具
+├── modules/                       # 按模块组织的测试
+│   ├── core/                      # 核心功能测试
+│   │   ├── WebServer_test.cpp     # WebServer主类测试
+│   │   ├── Config_test.cpp        # 配置系统测试
+│   │   └── CMakeLists.txt         # 构建配置
+│   ├── http/                      # HTTP相关测试
+│   │   ├── HttpParser_test.cpp    # HTTP解析器测试
+│   │   ├── HttpStatus_test.cpp    # HTTP状态码测试
+│   │   └── CMakeLists.txt         # 构建配置
+│   ├── memory/                    # 内存管理测试
+│   │   ├── MemoryPool_test.cpp              # 内存池测试
+│   │   ├── MultiLevelMemoryPool_test.cpp    # 多级内存池测试
+│   │   ├── test_multi_level_memory_pool.cpp # 多级内存池测试
+│   │   └── CMakeLists.txt                   # 构建配置
+│   ├── thread/                    # 线程相关测试
+│   │   ├── ThreadPool_test.cpp    # 线程池测试
+│   │   └── CMakeLists.txt         # 构建配置
+│   ├── logger/                    # 日志系统测试
+│   │   ├── Logger_test.cpp        # 日志功能测试
+│   │   └── CMakeLists.txt         # 构建配置
+│   ├── utils/                     # 工具类测试
+│   │   ├── ColorOutputTest.cpp    # 颜色输出测试
+│   │   └── CMakeLists.txt         # 构建配置
+│   └── ssl/                       # SSL功能测试
+│       └── CMakeLists.txt         # 构建配置（预留）
+├── main.cpp                       # 测试入口
 ```
 
 ## 模块划分说明
@@ -47,7 +63,8 @@ test/
 - 日志功能测试
 
 ### 工具模块 (utils)
-包含各种工具类的测试。
+包含各种工具类的测试，如：
+- 颜色输出工具测试
 
 ### SSL模块 (ssl)
 包含 SSL/TLS 相关功能的测试。
@@ -66,6 +83,7 @@ ctest -R run_http_tests
 ctest -R run_memory_tests
 ctest -R run_thread_tests
 ctest -R run_logger_tests
+ctest -R run_utils_tests
 ```
 
 ## 扩展测试模块

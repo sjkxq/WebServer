@@ -16,17 +16,33 @@
 
 ```
 test/
-├── fixtures/                 # 测试夹具
-├── modules/                  # 按模块组织的测试
-│   ├── core/                 # 核心功能测试
-│   ├── http/                 # HTTP相关测试
-│   ├── memory/               # 内存管理测试
-│   ├── thread/               # 线程相关测试
-│   ├── logger/               # 日志系统测试
-│   ├── utils/                # 工具类测试
-│   └── ssl/                  # SSL功能测试
-├── ColorOutputTest.cpp       # 颜色输出测试
-└── main.cpp                  # 测试入口
+├── fixtures/                      # 测试夹具
+├── modules/                       # 按模块组织的测试
+│   ├── core/                      # 核心功能测试
+│   │   ├── WebServer_test.cpp     # WebServer主类测试
+│   │   ├── Config_test.cpp        # 配置系统测试
+│   │   └── CMakeLists.txt         # 构建配置
+│   ├── http/                      # HTTP相关测试
+│   │   ├── HttpParser_test.cpp    # HTTP解析器测试
+│   │   ├── HttpStatus_test.cpp    # HTTP状态码测试
+│   │   └── CMakeLists.txt         # 构建配置
+│   ├── memory/                    # 内存管理测试
+│   │   ├── MemoryPool_test.cpp              # 内存池测试
+│   │   ├── MultiLevelMemoryPool_test.cpp    # 多级内存池测试
+│   │   ├── test_multi_level_memory_pool.cpp # 多级内存池测试
+│   │   └── CMakeLists.txt                   # 构建配置
+│   ├── thread/                    # 线程相关测试
+│   │   ├── ThreadPool_test.cpp    # 线程池测试
+│   │   └── CMakeLists.txt         # 构建配置
+│   ├── logger/                    # 日志系统测试
+│   │   ├── Logger_test.cpp        # 日志功能测试
+│   │   └── CMakeLists.txt         # 构建配置
+│   ├── utils/                     # 工具类测试
+│   │   ├── ColorOutputTest.cpp    # 颜色输出测试
+│   │   └── CMakeLists.txt         # 构建配置
+│   └── ssl/                       # SSL功能测试
+│       └── CMakeLists.txt         # 构建配置（预留）
+├── main.cpp                       # 测试入口
 ```
 
 ## 编写测试
@@ -91,7 +107,7 @@ INSTANTIATE_TEST_SUITE_P(
    
    # 新模块测试源文件
    set(NEW_MODULE_TEST_SOURCES
-       ../../NewModule_test.cpp
+       NewModule_test.cpp
    )
    
    # 创建新模块测试可执行文件
@@ -143,6 +159,9 @@ ctest -R run_thread_tests
 
 # 运行日志模块测试
 ctest -R run_logger_tests
+
+# 运行工具模块测试
+ctest -R run_utils_tests
 ```
 
 ### 调试测试
@@ -151,13 +170,16 @@ ctest -R run_logger_tests
 
 ```bash
 # 运行核心测试
-./test/core_tests
+./test/modules/core/core_tests
 
 # 运行HTTP测试
 ./test/modules/http/http_tests
 
+# 运行工具模块测试
+./test/modules/utils/utils_tests
+
 # 使用GDB调试
-gdb ./test/core_tests
+gdb ./test/modules/utils/utils_tests
 ```
 
 ## 最佳实践

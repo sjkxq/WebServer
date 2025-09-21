@@ -2,9 +2,9 @@
 
 # 内存模块测试源文件
 set(MEMORY_TEST_SOURCES
-    ../../MemoryPool_test.cpp
-    ../../MultiLevelMemoryPool_test.cpp
-    ../../test_multi_level_memory_pool.cpp
+    MemoryPool_test.cpp
+    MultiLevelMemoryPool_test.cpp
+    test_multi_level_memory_pool.cpp
 )
 
 # 创建内存模块测试可执行文件

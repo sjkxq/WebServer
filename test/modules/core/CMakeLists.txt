@@ -2,8 +2,8 @@
 
 # 核心模块测试源文件
 set(CORE_TEST_SOURCES
-    ../../WebServer_test.cpp
-    ../../Config_test.cpp
+    WebServer_test.cpp
+    Config_test.cpp
 )
 
 # 创建核心模块测试可执行文件

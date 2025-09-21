@@ -2,7 +2,7 @@
 
 # 日志模块测试源文件
 set(LOGGER_TEST_SOURCES
-    ../../Logger_test.cpp
+    Logger_test.cpp
 )
 
 # 创建日志模块测试可执行文件
