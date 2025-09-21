@@ -3,14 +3,6 @@
 # 测试源文件列表
 set(TEST_SOURCES
     main.cpp
-    WebServer_test.cpp
-    ThreadPool_test.cpp
-    Logger_test.cpp
-    Config_test.cpp
-    MemoryPool_test.cpp
-    MultiLevelMemoryPool_test.cpp
-    HttpStatus_test.cpp
-    HttpParser_test.cpp
 )
 
 # 主要测试可执行文件
@@ -35,26 +27,17 @@ target_include_directories(webserver_tests PRIVATE
 # 添加到CTest
 add_test(NAME run_webserver_tests COMMAND webserver_tests)
 
-# ColorOutput测试
-add_executable(color_output_test
-    ColorOutputTest.cpp
-)
-
-target_link_libraries(color_output_test PRIVATE 
-    ColorOutput
-    gtest_main
-)
-
-target_include_directories(color_output_test PRIVATE 
-    ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/modules/ColorOutput/include
-)
-
-# 添加到CTest
-add_test(NAME run_color_output_test COMMAND color_output_test)
+# 添加模块化测试
+add_subdirectory(modules/core)
+add_subdirectory(modules/http)
+add_subdirectory(modules/memory)
+add_subdirectory(modules/thread)
+add_subdirectory(modules/logger)
+add_subdirectory(modules/utils)
+add_subdirectory(modules/ssl)
 
 # 设置所有测试的工作目录
-set_tests_properties(run_webserver_tests run_color_output_test
+set_tests_properties(run_webserver_tests
     PROPERTIES WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
